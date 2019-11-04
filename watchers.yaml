@@ -2,6 +2,7 @@
 # Package is a regular expression which will be automatically delimited by
 # ".*".
 bsunanda:
+  - Validation/HGCalValidation
   - Geometry/
   - SimDataFormats/
   - SimG4Core/
@@ -1161,8 +1162,6 @@ vandreev11:
 - Validation/HGCalValidation
 - RecoLocalCalo/HGCalRecAlgos
 - RecoLocalCalo/HGCalRecProducers
-bsunanda:
-- Validation/HGCalValidation
 sethzenz:
 - SimCalorimetry/HGCalSimProducers
 - DataFormats/HGCDigi
