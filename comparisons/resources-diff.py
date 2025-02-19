@@ -11,8 +11,7 @@ def diff_from(metrics, data, data_total, dest, dest_total, res):
         dkey = "%s_diff" % metric
         res[dkey] = dmetric
         pdmetric = 0.0
-        if not data[metric] == 0.0:
-            pdmetric = 100 * dmetric / data[metric]
+        pdmetric = dmetric
         pdkey = "%s_pdiff" % metric
         res[pdkey] = pdmetric
         fkey = "%s_frac" % metric
@@ -24,8 +23,7 @@ def diff_from(metrics, data, data_total, dest, dest_total, res):
         dfkey = "%s_frac_diff" % metric
         res[dfkey] = dfmetric
         pdfmetric = 0.0
-        if not fdata == 0.0:
-            pdfmetric = 100 * dfmetric / fdata
+        pdfmetric = dfmetric
         dkpkey = "%s_frac_diff" % metric
         res[dkpkey] = pdfmetric
 
@@ -144,7 +142,7 @@ summaryLines += [
     '</td></tr><tr><td bgcolor="cyan">',
     "warn threshold -%0.2f" % error_threshold,
     "</td></tr>",
-    "<tr><td>metric:<BR>&lt;pull request&gt;<BR>&lt;baseline &gt;<BR>&lt;100 * (PR - baseline) / baseline &gt; </td>",
+    "<tr><td>metric:<BR>&lt;pull request&gt;<BR>&lt;baseline &gt;<BR>&lt;PR - baseline&gt; </td>",
     "</tr></table>",
     "<table>",
     '<tr><td align="center">Type</td>',
@@ -157,17 +155,17 @@ summaryLines += [
     "</tr>",
     "<td>%s</td>" % prdata["total"]["type"],
     "<td>%s</td>" % prdata["total"]["label"],
-    '<td align="right">%0.2f<br>%0.2f<br>%0.2f%%</td>'
+    '<td align="right">%0.2f<br>%0.2f<br>%0.2f</td>'
     % (
         prdata["total"]["time_real"],
         ibdata["total"]["time_real"],
-        results["total"]["time_real_pdiff"],
+        results["total"]["time_real_diff"],
     ),
-    '<td align="right">%0.2f<br>%0.2f<br>%0.2f%%</td>'
+    '<td align="right">%0.2f<br>%0.2f<br>%0.2f</td>'
     % (
         prdata["total"]["time_thread"],
         ibdata["total"]["time_thread"],
-        results["total"]["time_thread_pdiff"],
+        results["total"]["time_thread_diff"],
     ),
     '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
     % (
@@ -219,11 +217,11 @@ for item in sorted(datamapres.items(), key=lambda x: x[1]["time_thread_frac_diff
             "<tr>",
             "<td> %s</td>" % moduleres["type"],
             "<td> %s</td>" % moduleres["label"],
-            '<td align="right"> %0.2f<br> %0.2f<br> %0.2f%%</td>'
+            '<td align="right"> %0.2f<br> %0.2f<br> %0.2f</td>'
             % (
                 moduleib["time_real"],
                 modulepr["time_real"],
-                moduleres["time_real_pdiff"],
+                moduleres["time_real_diff"],
             ),
             '<td align="right"> %0.2f%%<br> %0.2f%%<br> %0.2f%%</td>'
             % (
@@ -231,11 +229,11 @@ for item in sorted(datamapres.items(), key=lambda x: x[1]["time_thread_frac_diff
                 modulepr["time_real_frac"],
                 moduleres["time_real_frac_diff"],
             ),
-            '<td align="right"> %0.2f<br> %0.2f<br> %0.2f%%</td>'
+            '<td align="right"> %0.2f<br> %0.2f<br> %0.2f</td>'
             % (
                 moduleib["time_thread"],
                 modulepr["time_thread"],
-                moduleres["time_thread_pdiff"],
+                moduleres["time_thread_diff"],
             ),
             cellString
             + "%0.2f%%<br> %0.2f%%<br> %0.2f%%</td>"
