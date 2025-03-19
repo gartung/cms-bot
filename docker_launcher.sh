@@ -24,6 +24,7 @@ else
     ulimit -a
   fi
 fi
+SCRIPTPATH="$(cd "$(dirname "$0")" ; /bin/pwd -P )"  # Absolute path to script
 export DBS_URL=https://cmsweb.cern.ch:8443/dbs/prod/global/DBSReader
 export GIT_CONFIG_NOSYSTEM=1
 if [ "X$WORKSPACE" = "X" ] ; then export WORKSPACE=$(/bin/pwd) ; fi
@@ -40,6 +41,9 @@ fi
 if [ -e ${py3or2_dir} ] ; then
   XPATH="${py3or2_dir}:"
   [ $(echo $PATH | tr ':' '\n' | grep "^${py3or2_dir}$" | wc -l) -eq 0 ] && export PATH="${py3or2_dir}:${PATH}"
+fi
+if [ "${JENKINS_AGENT_CORES}" != "" ] ; then
+  export PATH="${SCRIPTPATH}/system-tools/nproc:${PATH}"
 fi
 if [ "${USE_SINGULARITY}" != "false" ] ; then export USE_SINGULARITY=true; fi
 kinit -R || true
@@ -64,7 +68,11 @@ if [ "X$DOCKER_IMG" != X -a "X$RUN_NATIVE" = "X" ]; then
   BUILD_BASEDIR=$(dirname $WORKSPACE)
   export KRB5CCNAME=$(klist | grep 'Ticket cache: FILE:' | sed 's|.* ||')
   MOUNT_POINTS="/cvmfs,/tmp,$(echo $WORKSPACE | cut -d/ -f1,2),/var/run/user,/run/user,/etc/pki/ca-trust,${EXTRA_MOUNTS}"
-  for xdir in /cvmfs/grid.cern.ch/etc/grid-security:/etc/grid-security /cvmfs/grid.cern.ch/etc/grid-security/vomses:/etc/vomses ; do
+  grid_dirs="/cvmfs/grid.cern.ch/etc/grid-security:/etc/grid-security /cvmfs/grid.cern.ch/etc/grid-security/vomses:/etc/vomses"
+  if [ -e "/cvmfs/grid.cern.ch/etc/grid-security/vomses/voms-cms-auth.app.cern.ch" ] ; then
+    grid_dirs="${grid_dirs} /cvmfs/grid.cern.ch/etc/grid-security/vomses/voms-cms-auth.cern.ch:/etc/vomses/voms-cms-auth.app.cern.ch"
+  fi
+  for xdir in ${grid_dirs} ; do
     ldir=$(echo $xdir | sed 's|.*:||')
     if [ $(echo "${IGNORE_MOUNTS}" | tr ' ' '\n' | grep "^${ldir}$" | wc -l) -gt 0 ] ; then
       continue
