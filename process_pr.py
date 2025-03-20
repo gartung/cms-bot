@@ -146,11 +146,11 @@ ALL_CHECK_FUNCTIONS = None
 ALL_GPU_FLAVORS = [
     x.strip() for x in open(join(dirname(__file__), "gpu_flavors.txt"), "r").read().splitlines()
 ]
-EXTRA_RELVALS_TESTS = ["threading", "gpu", "high-stats", "nano"] + ALL_GPU_FLAVORS
+EXTRA_RELVALS_TESTS = ["threading", "gpu", "high_stats", "nano"] + ALL_GPU_FLAVORS
 EXTRA_RELVALS_TESTS_OPTS = "_" + "|_".join(EXTRA_RELVALS_TESTS)
 EXTRA_TESTS = (
     "|".join(EXTRA_RELVALS_TESTS)
-    + "|hlt_p2_integration|hlt_p2_timing|profiling|none|multi-microarchs"
+    + "|hlt_p2_integration|hlt_p2_timing|profiling|none|multi_microarchs"
 )
 SKIP_TESTS = "|".join(["static", "header"])
 ENABLE_TEST_PTRN = "enable(_test(s|)|)"
@@ -1597,7 +1597,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
     # Extract enabled GPU flavors and remove them from enable_tests
     new_enable_tests = []
     enabled_gpu_flavors = set()
-    for test in enable_tests.split():
+    for test in enable_tests.split(","):
         if test == "GPU":
             enabled_gpu_flavors.update([x.upper() for x in ALL_GPU_FLAVORS])
         elif test.lower() in ALL_GPU_FLAVORS:
@@ -1606,7 +1606,7 @@ def process_pr(repo_config, gh, repo, issue, dryRun, cmsbuild_user=None, force=F
             new_enable_tests.append(test)
 
     new_enable_tests.extend(list(enabled_gpu_flavors))
-    enable_tests = " ".join(new_enable_tests)
+    enable_tests = ",".join(new_enable_tests)
 
     # Check if it needs to be automatically closed.
     if mustClose:

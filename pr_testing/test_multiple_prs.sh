@@ -170,7 +170,7 @@ fi
 readarray -t ALL_GPU_TYPES < ${CMS_BOT_DIR}/gpu_flavors.txt
 
 declare -a ENABLE_GPU_FLAVORS
-for ex_type in ${ENABLE_BOT_TESTS} ; do
+for ex_type in $(echo ${ENABLE_BOT_TESTS} | tr "," " ") ; do
   ex_type_lc=$(echo $ex_type | tr '[A-Z]' '[a-z]')
   if is_in_array "$ex_type_lc" "${ALL_GPU_TYPES[@]}" ; then
     ENABLE_GPU_FLAVORS+=( $ex_type )
@@ -1203,7 +1203,7 @@ if [ "X$EXTRA_CMSSW_PACKAGES" != "X" ] ; then
   git cms-addpkg $(echo "${EXTRA_CMSSW_PACKAGES}" | tr ',' ' ') || true
 fi
 mark_commit_status_all_prs '' 'pending' -u "${BUILD_URL}" -d "Building CMSSW" || true
-if [ $(echo ${ENABLE_BOT_TESTS} | tr ',' ' ' | tr ' ' '\n' | grep '^MULTI-MICROARCHS$' | wc -l) -gt 0 ] ; then
+if [ $(echo ${ENABLE_BOT_TESTS} | tr ',' ' ' | tr ' ' '\n' | grep '^MULTI_MICROARCHS$' | wc -l) -gt 0 ] ; then
   scram build enable-multi-targets || true
 fi
 COMPILATION_CMD="scram b vclean && BUILD_LOG=yes $USER_FLAGS /usr/bin/time -v scram b ${BUILD_VERBOSE} -k -j ${NCPU}"
