@@ -20,7 +20,7 @@ git clone --depth 1 https://github.com/cms-cmpwg/profiling.git
 
 mkdir -p $WORKSPACE/upload/profiling/
 for PROFILING_WORKFLOW in $WORKFLOWS;do
-  if [ $(runTheMatrix.py -n ${MATRIX_OPT} | grep -w "$PROFILING_WORKFLOW" 2>/dev/null | wc -l) -eq 0 ] ; then
+  if [ $(runTheMatrix.py -n | grep -w "$PROFILING_WORKFLOW" 2>/dev/null | wc -l) -eq 0 ] && [ $(runTheMatrix.py -n ${MATRIX_OPT} | grep -w "$PROFILING_WORKFLOW" 2>/dev/null | wc -l) -eq 0 ] ; then
     mark_commit_status_all_prs "profiling wf $PROFILING_WORKFLOW" 'success' -u "${BUILD_URL}" -d "Not run: not a valid workflows" -e
     echo "<li>$PROFILING_WORKFLOW: Not a valid workflow</li>" >> $WORKSPACE/upload/profiling/index-$PROFILING_WORKFLOW.html
     PROF_RES="ERROR"
