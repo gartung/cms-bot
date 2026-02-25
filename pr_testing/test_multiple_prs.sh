@@ -1363,7 +1363,7 @@ if [ "X$BUILD_OK" = Xtrue -a "$RUN_TESTS" = "true" ]; then
       else
         WORKFLOWS=$(echo $PROFILING_WORKFLOWS | tr ',' ' ')
       fi
-      for wf in WORKFLOWS;do
+      for wf in $WORKFLOWS;do
         mark_commit_status_all_prs "profiling wf $wf" 'pending' -u "${BUILD_URL}" -d "Waiting for tests to start"
       done
     fi
@@ -1604,11 +1604,13 @@ if [ "${DO_PROFILING}" = "true" ]  ; then
   else
     WORKFLOWS=$(echo ${PROFILING_WORKFLOWS} | tr ',' ' ')
   fi
-  
+
   for wf in ${WORKFLOWS}; do
     if [ "X$PROFILING_WORKFLOWS" != "X" ] ; then
       cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib-profiling-$wf.prop
       echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib-profiling-$wf.prop
+      cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib-vtune-profiling-$wf.prop
+      echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib-vtune-profiling-$wf.prop
     fi
     cp $WORKSPACE/test-env.txt $WORKSPACE/run-profiling-$wf.prop
     echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-profiling-$wf.prop
