@@ -1359,11 +1359,11 @@ if [ "X$BUILD_OK" = Xtrue -a "$RUN_TESTS" = "true" ]; then
     if $PRODUCTION_RELEASE ; then
       DO_PROFILING=true
       if [ "X$PROFILING_WORKFLOWS" = "X" ] ; then
-        PROFILING_WORKFLOWS=$($CMS_BOT_DIR/cmssw-pr-test-config _PROFILING | tr ',' ' ')
+        WORKFLOWS=$($CMS_BOT_DIR/cmssw-pr-test-config _PROFILING | tr ',' ' ')
       else
-        PROFILING_WORKFLOWS=$(echo $PROFILING_WORKFLOWS | tr ',' ' ')
+        WORKFLOWS=$(echo $PROFILING_WORKFLOWS | tr ',' ' ')
       fi
-      for wf in $PROFILING_WORKFLOWS;do
+      for wf in WORKFLOWS;do
         mark_commit_status_all_prs "profiling wf $wf" 'pending' -u "${BUILD_URL}" -d "Waiting for tests to start"
       done
     fi
@@ -1600,11 +1600,16 @@ fi
 
 if [ "${DO_PROFILING}" = "true" ]  ; then
   if [ "X$PROFILING_WORKFLOWS" = "X" ] ; then
-    PROFILING_WORKFLOWS=$($CMS_BOT_DIR/cmssw-pr-test-config _PROFILING | tr ',' ' ')
+    WORKFLOWS=$($CMS_BOT_DIR/cmssw-pr-test-config _PROFILING | tr ',' ' ')
   else
-    PROFILING_WORKFLOWS=$(echo ${PROFILING_WORKFLOWS} | tr ',' ' ')
+    WORKFLOWS=$(echo ${PROFILING_WORKFLOWS} | tr ',' ' ')
   fi
-  for wf in ${PROFILING_WORKFLOWS}; do
+  
+  for wf in ${WORKFLOWS}; do
+    if [ "X$PROFILING_WORKFLOWS" != "X" ] ; then
+      cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib-profiling-$wf.prop
+      echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib-profiling-$wf.prop
+    fi
     cp $WORKSPACE/test-env.txt $WORKSPACE/run-profiling-$wf.prop
     echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-profiling-$wf.prop
   done
