@@ -1607,15 +1607,15 @@ if [ "${DO_PROFILING}" = "true" ]  ; then
 
   for wf in ${WORKFLOWS}; do
     if [ "X$PROFILING_WORKFLOWS" != "X" ] ; then
-      cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib-profiling-$wf.prop
-      echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib-profiling-$wf.prop
-      cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib-vtune-profiling-$wf.prop
-      echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib-vtune-profiling-$wf.prop
+      cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib_profiling-$wf.prop
+      echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib_profiling-$wf.prop
+      cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib_vtune_profiling-$wf.prop
+      echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib_vtune_profiling-$wf.prop
     fi
     cp $WORKSPACE/test-env.txt $WORKSPACE/run-profiling-$wf.prop
     echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-profiling-$wf.prop
-    cp $WORKSPACE/test-env.txt $WORKSPACE/run-vtune-profiling-$wf.prop
-    echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-vtune-profiling-$wf.prop
+    cp $WORKSPACE/test-env.txt $WORKSPACE/run-vtune_profiling-$wf.prop
+    echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-vtune_profiling-$wf.prop
   done
 fi
 
