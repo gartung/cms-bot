@@ -634,20 +634,30 @@ if ${BUILD_EXTERNAL} ; then
       CMSSET_DEFAULT_ERR=""
       mkdir $WORKSPACE/cmsset_default
       EL_OS=$(ls $WORKSPACE/$BUILD_DIR/common/cmssw-el* | sed 's|.*/common/cmssw-el|el|' | grep -v 'el5')
-      for sh in bash sh zsh csh tcsh ; do
-        ext="sh"
-        case "$sh" in
-          csh|tcsh) ext="csh";;
-          *) ;;
-        esac
-        for os in $EL_OS ; do
-          echo "Checking cmsset_default.${ext} for $sh under $os" >>  $WORKSPACE/cmsset_default/run.log
-          if ! $WORKSPACE/$BUILD_DIR/common/cmssw-$os -- $sh -e $WORKSPACE/$BUILD_DIR/cmsset_default.${ext} >>$WORKSPACE/cmsset_default/run.log 2>&1 ; then
+      for os in $EL_OS ; do
+        cmssw_env="$WORKSPACE/$BUILD_DIR/common/cmssw-$os"
+        env_script="$WORKSPACE/$BUILD_DIR/cmsset_default.sh"
+        env_log="$WORKSPACE/cmsset_default/run.log"
+        for sh in bash sh zsh ; do
+          echo "Checking cmsset_default.sh for $sh under $os" >> ${env_log}
+          if ! $cmssw_env -- $sh -e $env_script >>${env_log} 2>&1 ; then
             CMSSET_DEFAULT_ERR="${CMSSET_DEFAULT_ERR} $sh:$os"
-            echo "Failed" >> $WORKSPACE/cmsset_default/run.log
-            $WORKSPACE/$BUILD_DIR/common/cmssw-$os -- $sh -ex $WORKSPACE/$BUILD_DIR/cmsset_default.${ext} > $WORKSPACE/cmsset_default/${sh}-${os}.log 2>&1 || true
+            echo "Failed" >> ${env_log}
+            $cmssw_env -- $sh -ex $env_script > $WORKSPACE/cmsset_default/${sh}-${os}.log 2>&1 || true
           else
-            echo "OK" >> $WORKSPACE/cmsset_default/run.log
+            echo "OK" >> ${env_log}
+          fi
+        done
+        env_script="$WORKSPACE/$BUILD_DIR/cmsset_default.csh"
+        for sh in csh tcsh ; do
+          echo "Checking cmsset_default.csh for $sh under $os" >> ${env_log}
+          echo "source $env_script" > $WORKSPACE/cmsset_default/run.csh
+          if [ $($cmssw_env -- $sh $WORKSPACE/cmsset_default/run.csh 2>&1 | wc -l) -gt 0 ] ; then
+            CMSSET_DEFAULT_ERR="${CMSSET_DEFAULT_ERR} $sh:$os"
+            echo "Failed" >> ${env_log}
+            $cmssw_env -- $sh $WORKSPACE/cmsset_default/run.csh >$WORKSPACE/cmsset_default/${sh}-${os}.log 2>&1 || true
+          else
+            echo "OK" >> ${env_log}
           fi
         done
       done
