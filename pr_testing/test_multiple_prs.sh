@@ -1607,10 +1607,15 @@ if [ "${DO_PROFILING}" = "true" ]  ; then
 
   for wf in ${WORKFLOWS}; do
     if [ "X$PROFILING_WORKFLOWS" != "X" ] ; then
-      cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib_profiling-$wf.prop
-      echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib_profiling-$wf.prop
-      cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib_vtune_profiling-$wf.prop
-      echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib_vtune_profiling-$wf.prop
+      if has_jenkins_artifacts profiling/${CMSSW_VERSION}/${SCRAM_ARCH}/$PROFILING_WORKFLOW -d; then
+        echo "Profiling artifacts for workflow $PROFILING_WORKFLOW already exist, skipping creation of profiling properties file"
+      else
+        echo "Profiling artifacts for workflow $PROFILING_WORKFLOW do not exist, creating profiling properties file"
+        cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib_profiling-$wf.prop
+        echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib_profiling-$wf.prop
+        cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib_vtune_profiling-$wf.prop
+        echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib_vtune_profiling-$wf.prop
+      fi 
     fi
     cp $WORKSPACE/test-env.txt $WORKSPACE/run-profiling-$wf.prop
     echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-profiling-$wf.prop
