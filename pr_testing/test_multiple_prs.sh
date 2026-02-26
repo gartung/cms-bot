@@ -634,13 +634,18 @@ if ${BUILD_EXTERNAL} ; then
       CMSSET_DEFAULT_ERR=""
       mkdir $WORKSPACE/cmsset_default
       EL_OS=$(ls $WORKSPACE/$BUILD_DIR/common/cmssw-el* | sed 's|.*/common/cmssw-el|el|' | grep -v 'el5')
-      for sh in bash sh zsh ; do
+      for sh in bash sh zsh csh tcsh ; do
+        ext="sh"
+        case "$sh" in
+          csh|tcsh) ext="csh";;
+          *) ;;
+        esac
         for os in $EL_OS ; do
-          echo "Checking cmsset_default.sh for $sh under $os" >>  $WORKSPACE/cmsset_default/run.log
-          if ! $WORKSPACE/$BUILD_DIR/common/cmssw-$os -- $sh -e $WORKSPACE/$BUILD_DIR/cmsset_default.sh >>$WORKSPACE/cmsset_default/run.log 2>&1 ; then
+          echo "Checking cmsset_default.${ext} for $sh under $os" >>  $WORKSPACE/cmsset_default/run.log
+          if ! $WORKSPACE/$BUILD_DIR/common/cmssw-$os -- $sh -e $WORKSPACE/$BUILD_DIR/cmsset_default.${ext} >>$WORKSPACE/cmsset_default/run.log 2>&1 ; then
             CMSSET_DEFAULT_ERR="${CMSSET_DEFAULT_ERR} $sh:$os"
             echo "Failed" >> $WORKSPACE/cmsset_default/run.log
-            $WORKSPACE/$BUILD_DIR/common/cmssw-$os -- $sh -ex $WORKSPACE/$BUILD_DIR/cmsset_default.sh > $WORKSPACE/cmsset_default/${sh}-${os}.log 2>&1 || true
+            $WORKSPACE/$BUILD_DIR/common/cmssw-$os -- $sh -ex $WORKSPACE/$BUILD_DIR/cmsset_default.${ext} > $WORKSPACE/cmsset_default/${sh}-${os}.log 2>&1 || true
           else
             echo "OK" >> $WORKSPACE/cmsset_default/run.log
           fi
