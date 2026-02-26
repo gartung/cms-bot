@@ -38,7 +38,15 @@ for PROFILING_WORKFLOW in $WORKFLOWS;do
     PROF_RES="ERROR"
     continue
   fi
-
+  WAIT_TIME=36000
+  while [ $WAIT_TIME -gt 0 ] ; do
+    if [ has_jenkins_artifacts profiling/${CMSSW_VERSION}/${SCRAM_ARCH}/$PROFILING_WORKFLOW -d  ] ; then
+      break
+    else
+      sleep 60
+      let WAIT_TIME=$WAIT_TIME-60
+    fi
+  done
   pushd $WORKSPACE/$CMSSW_VERSION/ || true
   for f in $(find $PROFILING_WORKFLOW -type f -name 'step*_cpu.resources.json' | sort -V ) ; do
     d=$(dirname $f)
