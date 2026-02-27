@@ -40,7 +40,7 @@ for PROFILING_WORKFLOW in $WORKFLOWS;do
   fi
   WAIT_TIME=36000
   while [ $WAIT_TIME -gt 0 ] ; do
-    if  has_jenkins_artifacts profiling/${CMSSW_VERSION}/${SCRAM_ARCH}/$PROFILING_WORKFLOW -d  ; then
+    if  has_jenkins_artifacts profiling/${CMSSW_VERSION}/${SCRAM_ARCH}/$PROFILING_WORKFLOW/moduleAllocMonitor.log  ; then
       break
     else
       sleep 60

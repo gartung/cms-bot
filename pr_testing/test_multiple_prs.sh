@@ -1622,7 +1622,7 @@ if [ "${DO_PROFILING}" = "true" ]  ; then
 
   for WORKFLOW in ${WORKFLOWS}; do
     if [ "X$PROFILING_WORKFLOWS" != "X" ] ; then
-      if has_jenkins_artifacts profiling/${CMSSW_VERSION}/${SCRAM_ARCH}/$WORKFLOW -d; then
+      if has_jenkins_artifacts profiling/${CMSSW_VERSION}/${SCRAM_ARCH}/$WORKFLOW/moduleAllocMonitor.log; then
         echo "Profiling artifacts for workflow $WORKFLOW already exist, skipping creation of profiling properties file"
       else
         echo "Profiling artifacts for workflow $WORKFLOW do not exist, creating profiling properties file"
