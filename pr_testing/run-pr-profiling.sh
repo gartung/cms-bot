@@ -62,7 +62,7 @@ for PROFILING_WORKFLOW in $WORKFLOWS;do
   for f in $(find $PROFILING_WORKFLOW -type f -name 'step*_cpu.resources.json' | sort -V ) ; do
     BASENAME=$(basename $f)
     get_jenkins_artifacts profiling/${CMSSW_VERSION}/${SCRAM_ARCH}/$f $PWD/$CMSSW_VERSION-$BASENAME || true
-    if [ ! -f $PWD/$CMSSW_VERSION-$BASENAME ] ; then
+    if ! [ -f $PWD/$CMSSW_VERSION-$BASENAME ] ; then
       echo "<li>File $CMSSW_VERSION-$BASENAME not found, skipping diff</li>" >> $WORKSPACE/upload/profiling/index-$PROFILING_WORKFLOW.html || true
       continue
     fi
@@ -79,7 +79,7 @@ for PROFILING_WORKFLOW in $WORKFLOWS;do
   for f in $(find $PROFILING_WORKFLOW -type f -name 'step*_moduleAllocMonitor.circles.json'| sort -V ) ; do
     BASENAME=$(basename $f)
     get_jenkins_artifacts profiling/${CMSSW_VERSION}/${SCRAM_ARCH}/$f $PWD/$CMSSW_VERSION-$BASENAME || true
-    if [ ! -f $PWD/$CMSSW_VERSION-$BASENAME ] ; then
+    if ! [ -f $PWD/$CMSSW_VERSION-$BASENAME ] ; then
       echo "<li>File $CMSSW_VERSION-$BASENAME not found, skipping diff</li>">> $WORKSPACE/upload/profiling/index-$PROFILING_WORKFLOW.html
       continue
     fi
