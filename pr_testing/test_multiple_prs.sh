@@ -1620,22 +1620,22 @@ if [ "${DO_PROFILING}" = "true" ]  ; then
     WORKFLOWS=$(echo ${PROFILING_WORKFLOWS} | tr ',' ' ')
   fi
 
-  for wf in ${WORKFLOWS}; do
+  for WORKFLOW in ${WORKFLOWS}; do
     if [ "X$PROFILING_WORKFLOWS" != "X" ] ; then
-      if has_jenkins_artifacts profiling/${CMSSW_VERSION}/${SCRAM_ARCH}/$PROFILING_WORKFLOW -d; then
-        echo "Profiling artifacts for workflow $PROFILING_WORKFLOW already exist, skipping creation of profiling properties file"
+      if has_jenkins_artifacts profiling/${CMSSW_VERSION}/${SCRAM_ARCH}/$WORKFLOW -d; then
+        echo "Profiling artifacts for workflow $WORKFLOW already exist, skipping creation of profiling properties file"
       else
-        echo "Profiling artifacts for workflow $PROFILING_WORKFLOW do not exist, creating profiling properties file"
-        cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib_profiling-$wf.prop
-        echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib_profiling-$wf.prop
-        cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib_vtune_profiling-$wf.prop
-        echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-ib_vtune_profiling-$wf.prop
+        echo "Profiling artifacts for workflow $WORKFLOW do not exist, creating profiling properties file"
+        cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib_profiling-$WORKFLOW.prop
+        echo "PROFILING_WORKFLOWS=${WORKFLOW}" >> $WORKSPACE/run-ib_profiling-$WORKFLOW.prop
+        cp $WORKSPACE/test-env.txt $WORKSPACE/run-ib_vtune_profiling-$WORKFLOW.prop
+        echo "PROFILING_WORKFLOWS=${WORKFLOW}" >> $WORKSPACE/run-ib_vtune_profiling-$WORKFLOW.prop
       fi 
     fi
-    cp $WORKSPACE/test-env.txt $WORKSPACE/run-profiling-$wf.prop
-    echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-profiling-$wf.prop
-    cp $WORKSPACE/test-env.txt $WORKSPACE/run-vtune_profiling-$wf.prop
-    echo "PROFILING_WORKFLOWS=${wf}" >> $WORKSPACE/run-vtune_profiling-$wf.prop
+    cp $WORKSPACE/test-env.txt $WORKSPACE/run-profiling-$WORKFLOW.prop
+    echo "PROFILING_WORKFLOWS=${WORKFLOW}" >> $WORKSPACE/run-profiling-$WORKFLOW.prop
+    cp $WORKSPACE/test-env.txt $WORKSPACE/run-vtune_profiling-$WORKFLOW.prop
+    echo "PROFILING_WORKFLOWS=${WORKFLOW}" >> $WORKSPACE/run-vtune_profiling-$WORKFLOW.prop
   done
 fi
 
