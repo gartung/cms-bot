@@ -2048,7 +2048,7 @@ if __name__ == "__main__":
         for res in rx["comparisons"]:
             if not res.get("release_queue", False):
                 continue
-            rel_queue = "_".join(res.get("release_queue").split("_")[:3])
+            rel_que = "_".join(res.get("release_queue").split("_")[:3])
             if not rel_que in merged_pr_cache:
                 merged_pr_cache[rel_que] = {"cmsdist": {}, "cmssw": {}}
             prs = res.get("merged_prs", [])
