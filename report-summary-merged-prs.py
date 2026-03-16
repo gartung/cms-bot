@@ -16,7 +16,7 @@ from github import Github
 from pprint import pformat
 
 from cmsutils import get_config_map_properties
-from github_utils import get_merge_prs
+from github_utils import get_merge_prs, get_pr_data
 from cms_static import GH_CMSSW_REPO, GH_CMSSW_ORGANIZATION
 from releases import CMSSW_DEVEL_BRANCH
 from socket import setdefaulttimeout
@@ -2042,6 +2042,31 @@ if __name__ == "__main__":
 
     structure = identify_release_groups(results)
     fix_results(results)
+
+    merged_pr_cache = {}
+    for rx in results:
+        for res in rx["comparisons"]:
+            if not res.get("release_queue", False):
+                continue
+            rel_que = "_".join(res.get("release_queue").split("_")[:3])
+            if not rel_que in merged_pr_cache:
+                merged_pr_cache[rel_que] = {"cmsdist": {}, "cmssw": {}}
+            prs = res.get("merged_prs", [])
+            for pr in prs:
+                merged_pr_cache[rel_que]["cmssw"][pr["number"]] = get_pr_data(
+                    "cms-sw/cmssw", pr["number"], CMS_PRS
+                )
+            prs = res.get("cmsdist_merged_prs", {})
+            for arch in prs:
+                for pr in prs[arch]:
+                    merged_pr_cache[rel_que]["cmsdist"][pr["number"]] = get_pr_data(
+                        "cms-sw/cmsdist", pr["number"], CMS_PRS
+                    )
+
+    for rel_que in merged_pr_cache:
+        out_json = open("prs/%s.json" % rel_que, "w")
+        json.dump(merged_pr_cache[rel_que], out_json, sort_keys=True, indent=4)
+        out_json.close()
 
     prod_archs = get_production_archs(get_config_map_properties())
     prod_ib_index = {}
