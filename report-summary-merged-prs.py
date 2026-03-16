@@ -2065,7 +2065,7 @@ if __name__ == "__main__":
 
     for rel_que in merged_pr_cache:
         out_json = open("prs/%s.json" % rel_que, "w")
-        json.dump(merged_pr_cache["rel_que"], out_json, sort_keys=True, indent=4)
+        json.dump(merged_pr_cache[rel_que], out_json, sort_keys=True, indent=4)
         out_json.close()
 
     prod_archs = get_production_archs(get_config_map_properties())
