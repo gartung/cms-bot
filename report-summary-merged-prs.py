@@ -983,7 +983,7 @@ def add_tests_to_results(
                 result["details"] = {}
                 comp["utests"].append(result)
 
-            comp["tests_archs"] = list(set(a + b + c))
+            comp["tests_archs"] = sorted(list(set(a + b + c)))
 
 
 def find_material_budget_results(comparisons, architecture):
