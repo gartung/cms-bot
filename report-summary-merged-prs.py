@@ -1620,6 +1620,8 @@ def get_cmssw_labels():
     for state in LABEL_TYPES:
         label_color = LABEL_TYPES[state]
         for cat in CMSSW_CATEGORIES:
+            if cat in cmssw_labels:
+                continue
             cmssw_labels["%s-%s" % (cat, state)] = label_color
         for cat in [c for c in COMMON_CATEGORIES if c not in ["code-checks"]]:
             cmssw_labels["%s-%s" % (cat, state)] = label_color
