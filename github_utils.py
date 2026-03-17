@@ -299,7 +299,10 @@ def get_pr_data(repo_name, pr_number, cmsprs):
     print("Checking cached file: " + pr_cache)
     if exists(pr_cache):
         with open(pr_cache) as ref:
-            return json.load(ref)
+            json_obj = json.load(ref)
+            if "labels" in json_obj:
+                json_obj["labels"] = sorted(json_obj["labels"])
+            return json_obj
     print("  Pull request cache %s for %s#%s not found." % (pr_cache, repo_name, pr_number))
     return {}
 
