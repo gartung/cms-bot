@@ -21,6 +21,9 @@ from cms_static import GH_CMSSW_REPO, GH_CMSSW_ORGANIZATION
 from releases import CMSSW_DEVEL_BRANCH
 from socket import setdefaulttimeout
 
+from githublabels import LABEL_TYPES, TYPE_COMMANDS
+from categories import COMMON_CATEGORIES, EXTERNAL_CATEGORIES, CMSSW_CATEGORIES
+
 setdefaulttimeout(120)
 CMSSW_REPO_NAME = join(GH_CMSSW_ORGANIZATION, GH_CMSSW_REPO)
 
@@ -324,7 +327,7 @@ def get_results_one_relval_file(filename):
         print(e)
         return False, details
     with open(summary_file, "w") as ref:
-        json.dump(details, ref, sort_keys=True)
+        json.dump(details, ref, sort_keys=True, indent=2)
     return details["num_failed"] == 0, details
 
 
@@ -1385,7 +1388,7 @@ def generate_separated_json_results(results):
         file_name = rq["release_name"] + ".json"
         summary_file_name = rq["release_name"] + "_summary.txt"
         out_json = open(file_name, "w")
-        json.dump(rq, out_json, sort_keys=True, indent=4)
+        json.dump(rq, out_json, sort_keys=True, indent=2)
         out_json.close()
 
         f_summary = open(summary_file_name, "w")
@@ -1521,7 +1524,7 @@ def generate_ib_json_short_summary(results):
     short_summary["all_archs"] = ARCHITECTURES
     short_summary["prod_archs"] = get_production_archs(get_config_map_properties())
     out_json = open("LatestIBsSummary.json", "w")
-    json.dump(short_summary, out_json, sort_keys=True, indent=4)
+    json.dump(short_summary, out_json, sort_keys=True, indent=2)
     out_json.close()
 
 
@@ -1608,6 +1611,21 @@ def fix_results(results):
             if comp["release_name"] == rq["base_branch"]:
                 comp["next_ib"] = True
         rq["comparisons"].reverse()
+
+
+def get_cmssw_labels():
+    cmssw_labels = {}
+    for cmd in TYPE_COMMANDS:
+        cmssw_labels[cmd] = TYPE_COMMANDS[cmd][0]
+    for state in LABEL_TYPES:
+        label_color = LABEL_TYPES[state]
+        for cat in CMSSW_CATEGORIES:
+            cmssw_labels["%s-%s" % (cat, state)] = label_color
+        for cat in [c for c in COMMON_CATEGORIES if c not in ["code-checks"]]:
+            cmssw_labels["%s-%s" % (cat, state)] = label_color
+        for cat in EXTERNAL_CATEGORIES:
+            cmssw_labels["%s-%s" % (cat, state)] = label_color
+    return cmssw_labels
 
 
 # -----------------------------------------------------------------------------------
@@ -2065,7 +2083,7 @@ if __name__ == "__main__":
 
     for rel_que in merged_pr_cache:
         out_json = open("prs/%s.json" % rel_que, "w")
-        json.dump(merged_pr_cache[rel_que], out_json, sort_keys=True, indent=4)
+        json.dump(merged_pr_cache[rel_que], out_json, sort_keys=True, indent=2)
         out_json.close()
 
     prod_archs = get_production_archs(get_config_map_properties())
@@ -2159,9 +2177,13 @@ if __name__ == "__main__":
     generate_ib_json_short_summary(results)
 
     out_json = open("merged_prs_summary.json", "w")
-    json.dump(results, out_json, sort_keys=True, indent=4)
+    json.dump(results, out_json, sort_keys=True, indent=2)
     out_json.close()
 
     out_groups = open("structure.json", "w")
-    json.dump(structure, out_groups, sort_keys=True, indent=4)
+    json.dump(structure, out_groups, sort_keys=True, indent=2)
     out_groups.close()
+
+    out_labels = open("cmssw_labels.json", "w")
+    json.dump(get_cmssw_labels(), out_labels, sort_keys=True, indent=2)
+    out_labels.close()
