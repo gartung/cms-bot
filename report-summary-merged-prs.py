@@ -1667,7 +1667,7 @@ if __name__ == "__main__":
     MAGIC_COMMAND_TAGS = (
         "GIT_DIR="
         + CMSSW_REPO_LOCAL
-        + ' git log --pretty=\'"%s", "tags->,%d"\' START_TAG..END_TAG | grep -E "\\"tags->, " | grep -E "RELEASE_QUEUE"'
+        + ' git log --pretty=\'"%s", "tags->,%d"\' START_TAG..END_TAG | grep -E "\\"tags->, " | grep -E "tags->, .*RELEASE_QUEUE"'
     )
     MAGIC_COMMAND_FIND_RESULTS_UNIT_TESTS = (
         "find "
@@ -1828,7 +1828,7 @@ if __name__ == "__main__":
     MAGIC_COMMAND_FIND_ALL_TAGS = (
         "GIT_DIR="
         + CMSSW_REPO_LOCAL
-        + ' git log --pretty=\'"%s", "tags->,%d"\' END_TAG | grep -E "\\"tags->, " | grep -E "RELEASE_QUEUE"'
+        + ' git log --pretty=\'"%s", "tags->,%d"\' END_TAG | grep -E "\\"tags->, " | grep -E "tags->, .*RELEASE_QUEUE"'
     )
     # This regular expression allows to identify if a merge commit is an automatic forward port
     AUTO_FORWARD_PORT_REGEX = "^.*Merge CMSSW.+ into CMSSW.+$"
