@@ -897,6 +897,7 @@ CMSSW_CATEGORIES = {
         "CUDADataFormats/Track",
         "CUDADataFormats/TrackingRecHit",
         "CUDADataFormats/Vertex",
+        "DataFormats/AlpakaCommon",
         "DataFormats/Portable",
         "DataFormats/PortableTestObjects",
         "DataFormats/SiPixelClusterSoA",
