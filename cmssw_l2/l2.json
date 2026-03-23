@@ -414,6 +414,14 @@
       "start_date": 1386892800
     }
   ],
+  "antonellopellecchia": [
+    {
+      "category": [
+        "gem-dpg"
+      ],
+      "start_date": 1773705600
+    }
+  ],
   "antoniovagnerini": [
     {
       "category": [
@@ -1542,6 +1550,7 @@
       "category": [
         "gem-dpg"
       ],
+      "end_date": 1773705600,
       "start_date": 1632873600
     }
   ],
@@ -1559,6 +1568,7 @@
       "category": [
         "gem-dpg"
       ],
+      "end_date": 1773705600,
       "start_date": 1618358400
     }
   ],
@@ -3005,6 +3015,14 @@
         "ml"
       ],
       "start_date": 1722297600
+    }
+  ],
+  "yeckang": [
+    {
+      "category": [
+        "gem-dpg"
+      ],
+      "start_date": 1773705600
     }
   ],
   "yuanchao": [
