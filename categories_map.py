@@ -1771,6 +1771,7 @@ CMSSW_CATEGORIES = {
         "PhysicsTools/NanoAOD",
         "PhysicsTools/NanoAODTools",
         "PhysicsTools/PatAlgos",
+        "PhysicsTools/PatFromScouting",
         "PhysicsTools/PatUtils",
         "PhysicsTools/Scouting",
     ],
