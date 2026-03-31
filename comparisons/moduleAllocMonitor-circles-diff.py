@@ -251,20 +251,12 @@ summaryLines += [
     "</tr>",
 ]
 
-for item in sorted(
-    datamapres.items(),
-    key=lambda x: x[1]["added construction diff"]
-    + x[1]["added event diff"]
-    + x[1]["added event setup diff"],
-    reverse=True,
-):
+for item in datamapres.items():
     key = item[1]["label"] + "|" + item[1]["type"] + "|" + item[1]["record"]
     if not key == "||":
         moduleib = datamapib[key]
         modulepr = datamappr[key]
         moduleres = datamapres[key]
-        cellString = '<td align="right" '
-        color = ""
         added_total_pr = (
             modulepr.get("added event setup", 0)
             + modulepr.get("added event", 0)
@@ -274,6 +266,7 @@ for item in sorted(
             + modulepr.get("added global begin luminosity block", 0)
             + modulepr.get("added stream begin luminosity block", 0)
         )
+        modulepr["added total"] = added_total_pr
         added_total_ib = (
             moduleib.get("added event setup", 0)
             + moduleib.get("added event", 0)
@@ -283,6 +276,7 @@ for item in sorted(
             + moduleib.get("added global begin luminosity block", 0)
             + moduleib.get("added stream begin luminosity block", 0)
         )
+        moduleib["added total"] = added_total_ib
         added_total_diff = (
             moduleres.get("added event setup diff", 0)
             + moduleres.get("added event diff", 0)
@@ -292,13 +286,27 @@ for item in sorted(
             + moduleres.get("added global begin luminosity block diff", 0)
             + moduleres.get("added stream begin luminosity block diff", 0)
         )
-        if added_total_diff > threshold:
+        moduleres["added total diff"] = added_total_diff
+
+for item in sorted(
+    datamapres.items(),
+    key=lambda x: x[1]["added total diff"],
+    reverse=True,
+):
+    key = item[1]["label"] + "|" + item[1]["type"] + "|" + item[1]["record"]
+    if not key == "||":
+        moduleib = datamapib[key]
+        modulepr = datamappr[key]
+        moduleres = datamapres[key]
+        cellString = '<td align="right" '
+        color = ""
+        if moduleres["added total diff"] > threshold:
             color = 'bgcolor="orange"'
-        if added_total_diff > error_threshold:
+        if moduleres["added total diff"] > error_threshold:
             color = 'bgcolor="red"'
-        if added_total_diff < -1.0 * threshold:
+        if moduleres["added total diff"] < -1.0 * threshold:
             color = 'bgcolor="cyan"'
-        if added_total_diff < -1.0 * error_threshold:
+        if moduleres["added total diff"] < -1.0 * error_threshold:
             color = 'bgcolor="green"'
         cellString += color
         cellString += ">"
@@ -343,9 +351,9 @@ for item in sorted(
             cellString
             + "%0.2f<br> %0.2f<br> %0.2f</td>"
             % (
-                added_total_ib,
-                added_total_pr,
-                added_total_diff,
+                moduleib["added total"],
+                modulepr["added total"],
+                moduleres["added total diff"],
             ),
             '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
             % (
