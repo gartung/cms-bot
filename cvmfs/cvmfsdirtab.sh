@@ -15,7 +15,7 @@ for cmsdir in "$@" ; do
   done
 
   #actsdata
-  if [ -d ${CVMFS_DIR}/$cmsdir/share/external/actsdata ] ; then
+  if [ $(ls ${CVMFS_DIR}/$cmsdir/share/external/actsdata -d 2>/dev/null | wc -l) -qt 0 ] ; then 
     echo "/${cmsdir}/share/external/actsdata/*"
     echo "/${cmsdir}/share/external/actsdata/*/detray_simulation/telescope/sparse_tracks/*"
   fi
