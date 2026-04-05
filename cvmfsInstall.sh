@@ -247,5 +247,8 @@ ln -s $(grep "^nweek-" ${CMS_BOT_DIR}/ib-weeks | tail -1) $BASEDIR/latest
 if $CVMFS_INSTALL ; then
   # Write everything in the repository
   echo "Publishing started" `date`
+  if [ -e ${CMS_BOT_DIR}/cvmfs/${CVMFS_REPOSITORY}/cvmfsdirtab.sh ] ; then
+    ${CMS_BOT_DIR}/cvmfs/${CVMFS_REPOSITORY}/cvmfsdirtab.sh > /cvmfs/${CVMFS_REPOSITORY}/.cvmfsdirtab
+  fi
   time cvmfs_server publish
 fi
