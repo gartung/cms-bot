@@ -14,6 +14,12 @@ for cmsdir in "$@" ; do
     echo "/${cmsdir}/*_*_*/external/${x}/*"
   done
 
+  #actsdata
+  if [ -d ${CVMFS_DIR}/$cmsdir/share/external/actsdata ] ; then
+    echo "/${cmsdir}/share/external/actsdata/*"
+    echo "/${cmsdir}/share/external/actsdata/*/detray_simulation/telescope/sparse_tracks/*"
+  fi
+
   #Some special directories
   for x in cms lcg lcg/root ; do
     echo "/${cmsdir}/*_*_*/${x}"
