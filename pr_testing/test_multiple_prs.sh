@@ -801,6 +801,7 @@ if ${BUILD_EXTERNAL} ; then
           DEP_NAMES="$DEP_NAMES echo_${tool}_USED_BY"
         fi
       done
+      scram setup || true
       if [ "${DEP_NAMES}" != "" ] ; then
         CMSSW_DEP=$(scram build ${DEP_NAMES} | tr ' ' '\n' | grep '^cmssw/\|^self/' | cut -d"/" -f 2,3 | sort | uniq)
         DEP_NAMES=""
