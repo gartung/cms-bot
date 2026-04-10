@@ -572,6 +572,14 @@
       "start_date": 1387584000
     }
   ],
+  "benitezj": [
+    {
+      "category": [
+        "lumi-pog"
+      ],
+      "start_date": 1775692800
+    }
+  ],
   "benkrikler": [
     {
       "category": [
@@ -782,6 +790,7 @@
       "category": [
         "lumi-pog"
       ],
+      "end_date": 1775692800,
       "start_date": 1632873600
     }
   ],
@@ -1621,6 +1630,7 @@
       "category": [
         "lumi-pog"
       ],
+      "end_date": 1775692800,
       "start_date": 1632787200
     }
   ],
@@ -2141,6 +2151,14 @@
         "dqm"
       ],
       "start_date": 1757462400
+    }
+  ],
+  "nowaythatsok": [
+    {
+      "category": [
+        "lumi-pog"
+      ],
+      "start_date": 1775692800
     }
   ],
   "nsmith-": [
