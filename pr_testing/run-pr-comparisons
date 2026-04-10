@@ -98,6 +98,7 @@ COMP_UPLOAD_DIR="baseLineComparisons${UC_TEST_FLAVOR}/${COMPARISON_RELEASE}+${PR
 DAS_NON_CONSISTENT_WFS_FILE=wf_non_consistent_das.txt
 MAPPING_FILE=wf_mapping.txt
 ERRORS_FILE=wf_errors.txt
+[ $(echo ${RELEASE_FORMAT} | grep 'EVOLUTION_X'   | wc -l) -gt 0 ] && RUN_JR_COMP=false
 
 #Make sure Release baseline has been deployed
 echo -n "Waiting for baseline .."
