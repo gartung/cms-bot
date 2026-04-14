@@ -24,7 +24,13 @@ NALLOC_BEGIN_LUMI_KEYS = [
     "nAlloc global begin luminosity block",
     "nAlloc stream begin luminosity block",
 ]
-NALLOC_TOTAL_KEYS = ["nAlloc construction", "nAlloc event", "nAlloc event setup"]
+NALLOC_TOTAL_KEYS = [
+    "nAlloc construction",
+    "nAlloc event",
+    "nAlloc event setup",
+    *NALLOC_BEGIN_RUN_KEYS,
+    *NALLOC_BEGIN_LUMI_KEYS,
+]
 
 
 def module_key(module):
