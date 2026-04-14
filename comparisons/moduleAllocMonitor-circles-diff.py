@@ -42,7 +42,9 @@ def sum_numeric_values(data, keys, default="N/A"):
 
 
 def sum_with_suffix(data, metric_keys, suffix, default="N/A"):
-    return sum_numeric_values(data, ["%s %s" % (metric, suffix) for metric in metric_keys], default)
+    return sum_numeric_values(
+        data, ["%s %s" % (metric, suffix) for metric in metric_keys], default
+    )
 
 
 def format_metric(value):
@@ -51,7 +53,8 @@ def format_metric(value):
 
 def append_triplet_cell(summary_lines, ib, pr, diff, attrs='align="right"'):
     summary_lines.append(
-        '<td %s>%s<br>%s<br>%s</td>' % (attrs, format_metric(ib), format_metric(pr), format_metric(diff))
+        "<td %s>%s<br>%s<br>%s</td>"
+        % (attrs, format_metric(ib), format_metric(pr), format_metric(diff))
     )
 
 
@@ -167,8 +170,10 @@ def build_summary_header(ibdata, prdata, results):
         ),
         '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
         % (
-            ibdata["total"]["nAlloc global begin run"] + ibdata["total"]["nAlloc stream begin run"],
-            prdata["total"]["nAlloc global begin run"] + prdata["total"]["nAlloc stream begin run"],
+            ibdata["total"]["nAlloc global begin run"]
+            + ibdata["total"]["nAlloc stream begin run"],
+            prdata["total"]["nAlloc global begin run"]
+            + prdata["total"]["nAlloc stream begin run"],
             results["total"]["nAlloc global begin run diff"]
             + results["total"]["nAlloc stream begin run diff"],
         ),
