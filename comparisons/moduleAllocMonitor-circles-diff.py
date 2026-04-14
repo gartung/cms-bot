@@ -394,7 +394,10 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            f'<td align="right"> {added_construction_ib}<br> {added_construction_pr}<br> {added_construction_diff}</td>'
+            '<td align="right">' + f'{added_construction_ib:{".2f" if isinstance(added_construction_ib, (float)) else ""}}'
+            + "<br>" + f'{added_construction_pr:{".2f" if isinstance(added_construction_pr, (float)) else ""}}'
+            + "<br>" + f'{added_construction_diff:{".2f" if isinstance(added_construction_diff, (float)) else ""}}'
+            + "</td>"
         ]
         added_begin_run_ib = (
             (
@@ -424,7 +427,12 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            f'<td align="right"> {added_begin_run_ib}<br> {added_begin_run_pr}<br> {added_begin_run_diff}</td>'
+            (
+                '<td align="right">' + f'{added_begin_run_ib:{".2f" if isinstance(added_begin_run_ib, (float)) else ""}}'
+                + "<br>" + f'{added_begin_run_pr:{".2f" if isinstance(added_begin_run_pr, (float)) else ""}}'
+                + "<br>" + f'{added_begin_run_diff:{".2f" if isinstance(added_begin_run_diff, (float)) else ""}}'
+                + "</td>"
+            )
         ]
         added_luminosity_block_ib = (
             (
@@ -462,7 +470,12 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            f'<td align="right"> {added_luminosity_block_ib}<br> {added_luminosity_block_pr}<br> {added_luminosity_block_diff}</td>'
+            (
+                '<td align="right">' + f'{added_luminosity_block_ib:{".2f" if isinstance(added_luminosity_block_ib, (float)) else ""}}'
+                + "<br>" + f'{added_luminosity_block_pr:{".2f" if isinstance(added_luminosity_block_pr, (float)) else ""}}'
+                + "<br>" + f'{added_luminosity_block_diff:{".2f" if isinstance(added_luminosity_block_diff, (float)) else ""}}'
+                + "</td>"
+            )
         ]
         added_event_ib = (
             moduleib.get("added event", "N/A")
@@ -480,7 +493,12 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            f'<td align="right"> {added_event_ib}<br> {added_event_pr}<br> {added_event_diff}</td>'
+            (
+                '<td align="right">' + f'{added_event_ib:{".2f" if isinstance(added_event_ib, (float)) else ""}}'
+                + "<br>" + f'{added_event_pr:{".2f" if isinstance(added_event_pr, (float)) else ""}}'
+                + "<br>" + f'{added_event_diff:{".2f" if isinstance(added_event_diff, (float)) else ""}}'
+                + "</td>"
+            )
         ]
         added_event_setup_ib = (
             moduleib.get("added event setup", "N/A")
@@ -498,7 +516,12 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            f'<td align="right"> {added_event_setup_ib}<br> {added_event_setup_pr}<br> {added_event_setup_diff}</td>'
+            (
+                '<td align="right">' + f'{added_event_setup_ib:{".2f" if isinstance(added_event_setup_ib, (float)) else ""}}'
+                + "<br>" + f'{added_event_setup_pr:{".2f" if isinstance(added_event_setup_pr, (float)) else ""}}'
+                + "<br>" + f'{added_event_setup_diff:{".2f" if isinstance(added_event_setup_diff, (float)) else ""}}'
+                + "</td>"
+            )
         ]
         added_total_ib = (
             (
@@ -570,7 +593,12 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            cellString + f"{added_total_ib}<br>{added_total_pr}<br>{added_total_diff}</td>"
+            (
+                cellString + f"{added_total_ib:{'.2f' if isinstance(added_total_ib, (float)) else ''}}"
+                    + "<br>" + f"{added_total_pr:{'.2f' if isinstance(added_total_pr, (float)) else ''}}"
+                    + "<br>" + f"{added_total_diff:{'.2f' if isinstance(added_total_diff, (float)) else ''}}"
+                    + "</td>"
+            )
         ]
         nAlloc_construction_ib = (
             moduleres.get("nAlloc construction IB", "N/A")
@@ -588,7 +616,9 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            f'<td align="right">{nAlloc_construction_ib}<br>{nAlloc_construction_pr}<br>{nAlloc_construction_diff}</td>'
+            f'<td align="right">{nAlloc_construction_ib:{".2f" if isinstance(nAlloc_construction_ib, (float)) else ""}}'
+            + f'<br>{nAlloc_construction_pr:{".2f" if isinstance(nAlloc_construction_pr, (float)) else ""}}'
+            + f'<br>{nAlloc_construction_diff:{".2f" if isinstance(nAlloc_construction_diff, (float)) else ""}}</td>'
         ]
         nAlloc_begin_run_ib = (
             (
@@ -618,7 +648,9 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            f'<td align="right">{nAlloc_begin_run_ib}<br>{nAlloc_begin_run_pr}<br>{nAlloc_begin_run_diff}</td>'
+            '<td align="right">' + f'{nAlloc_begin_run_ib:{".2f" if isinstance(nAlloc_begin_run_ib, (float)) else ""}}'
+            + f'<br>{nAlloc_begin_run_pr:{".2f" if isinstance(nAlloc_begin_run_pr, (float)) else ""}}'
+            + f'<br>{nAlloc_begin_run_diff:{".2f" if isinstance(nAlloc_begin_run_diff, (float)) else ""}}</td>'
         ]
         nAlloc_begin_luminosity_block_ib = (
             (
@@ -660,7 +692,9 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            f'<td align="right">{nAlloc_begin_luminosity_block_ib}<br>{nAlloc_begin_luminosity_block_pr}<br>{nAlloc_begin_luminosity_block_diff}</td>'
+            '<td align="right">' + f'{nAlloc_begin_luminosity_block_ib:{".2f" if isinstance(nAlloc_begin_luminosity_block_ib, (float)) else ""}}'
+            + f'<br>{nAlloc_begin_luminosity_block_pr:{".2f" if isinstance(nAlloc_begin_luminosity_block_pr, (float)) else ""}}'
+            + f'<br>{nAlloc_begin_luminosity_block_diff:{".2f" if isinstance(nAlloc_begin_luminosity_block_diff, (float)) else ""}}</td>'
         ]
         nAlloc_event_ib = (
             moduleres.get("nAlloc event IB", "N/A")
@@ -678,7 +712,9 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            f'<td align="right">{nAlloc_event_ib}<br>{nAlloc_event_pr}<br>{nAlloc_event_diff}</td>'
+            '<td align="right">' + f'{nAlloc_event_ib:{".2f" if isinstance(nAlloc_event_ib, (float)) else ""}}'
+            + f'<br>{nAlloc_event_pr:{".2f" if isinstance(nAlloc_event_pr, (float)) else ""}}'
+            + f'<br>{nAlloc_event_diff:{".2f" if isinstance(nAlloc_event_diff, (float)) else ""}}</td>'
         ]
         nAlloc_event_setup_ib = (
             moduleres.get("nAlloc event setup IB", "N/A")
@@ -696,7 +732,9 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            f'<td align="right">{nAlloc_event_setup_ib}<br>{nAlloc_event_setup_pr}<br>{nAlloc_event_setup_diff}</td>'
+            '<td align="right">' + f'{nAlloc_event_setup_ib:{".2f" if isinstance(nAlloc_event_setup_ib, (float)) else ""}}'
+            + f'<br>{nAlloc_event_setup_pr:{".2f" if isinstance(nAlloc_event_setup_pr, (float)) else ""}}'
+            + f'<br>{nAlloc_event_setup_diff:{".2f" if isinstance(nAlloc_event_setup_diff, (float)) else ""}}</td>'
         ]
         nAlloc_total_ib = (
             (
@@ -732,7 +770,9 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            f'<td align="right">{nAlloc_total_ib}<br>{nAlloc_total_pr}<br>{nAlloc_total_diff}</td>'
+            '<td align="right">' + f'{nAlloc_total_ib:{".2f" if isinstance(nAlloc_total_ib, (float)) else ""}}'
+            + f'<br>{nAlloc_total_pr:{".2f" if isinstance(nAlloc_total_pr, (float)) else ""}}'
+            + f'<br>{nAlloc_total_diff:{".2f" if isinstance(nAlloc_total_diff, (float)) else ""}}</td>'
         ]
         transitions_ib = (
             moduleib.get("transitions", "N/A")
@@ -756,7 +796,9 @@ for item in sorted(
             ):
                 transitions_diff = 0 - transitions_ib
         summaryLines += [
-            f'<td align="right">{transitions_ib}<br>{transitions_pr}<br>{transitions_diff}</td>'
+            '<td align="right">' + f'{transitions_ib:{".2f" if isinstance(transitions_ib, (float)) else ""}}'
+            + f'<br>{transitions_pr:{".2f" if isinstance(transitions_pr, (float)) else ""}}'
+            + f'<br>{transitions_diff:{".2f" if isinstance(transitions_diff, (float)) else ""}}</td>'
         ]
 
 summaryLines += []
