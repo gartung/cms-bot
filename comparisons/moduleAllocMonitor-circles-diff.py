@@ -5,15 +5,20 @@ import json
 import os
 import math
 
+threshold = 5000.0
+error_threshold = 20000.0
 
 def diff_from(metrics, data, dest, res):
     for metric in metrics:
         ibkey = "%s IB" % metric
-        res[ibkey] = data.get(metric, float("nan"))
+        res[ibkey] = data.get(metric, "N/A")
         prkey = "%s PR" % metric
-        res[prkey] = dest.get(metric, float("nan"))
-        if math.isnan(res[ibkey]) or math.isnan(res[prkey]):
-            res[metric + " diff"] = float("nan")
+        res[prkey] = dest.get(metric, "N/A")
+        if res[ibkey] == "N/A" or res[prkey] == "N/A":
+            if res[prkey] != "N/A":
+                res[metric + " diff"] = res[prkey] - 0
+            elif res[ibkey] != "N/A":
+                res[metric + " diff"] = 0 - res[ibkey]
         else:
             dmetric = dest.get(metric) - data.get(metric)
             res[metric + " diff"] = dmetric
@@ -121,8 +126,6 @@ for module in results["modules"]:
     datamapres[
         "%s|%s|%s" % (module.get("label", ""), module.get("type", ""), module.get("record", ""))
     ] = module
-threshold = 5000.0
-error_threshold = 20000.0
 
 
 summaryLines = []
@@ -254,32 +257,34 @@ for item in datamapres.items():
         modulepr = datamappr.get(key, {})
         moduleres = datamapres.get(key, {})
         added_total_pr = (
-            modulepr.get("added event setup", float("nan"))
-            + modulepr.get("added event", float("nan"))
-            + modulepr.get("added construction", float("nan"))
-            + modulepr.get("added global begin run", float("nan"))
-            + modulepr.get("added stream begin run", float("nan"))
-            + modulepr.get("added global begin luminosity block", float("nan"))
-            + modulepr.get("added stream begin luminosity block", float("nan"))
-        )
+            moduleres.get("added event setup PR", 0)
+            + moduleres.get("added event PR", 0)
+            + moduleres.get("added construction PR", 0)
+            + moduleres.get("added global begin run PR", 0)
+            + moduleres.get("added stream begin run PR", 0)
+            + moduleres.get("added global begin luminosity block PR", 0)
+            + moduleres.get("added stream begin luminosity block PR", 0)
+        ) if isinstance(moduleres.get("added event setup PR", 0), (int, float)) and isinstance(moduleres.get("added event PR", 0), (int, float)) and isinstance(moduleres.get("added construction PR", 0), (int, float)) and isinstance(moduleres.get("added global begin run PR", 0), (int, float)) and isinstance(moduleres.get("added stream begin run PR", 0), (int, float)) and isinstance(moduleres.get("added global begin luminosity block PR", 0), (int, float)) and isinstance(moduleres.get("added stream begin luminosity block PR", 0), (int, float)) else "N/A"
+        moduleres["added total PR"] = added_total_pr
         added_total_ib = (
-            moduleib.get("added event setup", float("nan"))
-            + moduleib.get("added event", float("nan"))
-            + moduleib.get("added construction", float("nan"))
-            + moduleib.get("added global begin run", float("nan"))
-            + moduleib.get("added stream begin run", float("nan"))
-            + moduleib.get("added global begin luminosity block", float("nan"))
-            + moduleib.get("added stream begin luminosity block", float("nan"))
-        )
+            moduleres.get("added event setup IB", 0)
+            + moduleres.get("added event IB", 0)
+            + moduleres.get("added construction IB", 0)
+            + moduleres.get("added global begin run IB", 0)
+            + moduleres.get("added stream begin run IB", 0)
+            + moduleres.get("added global begin luminosity block IB", 0)
+            + moduleres.get("added stream begin luminosity block IB", 0)
+        ) if isinstance(moduleres.get("added event setup IB", 0), (int, float)) and isinstance(moduleres.get("added event IB", 0), (int, float)) and isinstance(moduleres.get("added construction IB", 0), (int, float)) and isinstance(moduleres.get("added global begin run IB", 0), (int, float)) and isinstance(moduleres.get("added stream begin run IB", 0), (int, float)) and isinstance(moduleres.get("added global begin luminosity block IB", 0), (int, float)) and isinstance(moduleres.get("added stream begin luminosity block IB", 0), (int, float)) else "N/A"
+        moduleres["added total IB"] = added_total_ib
         added_total_diff = (
-            moduleres.get("added event setup diff", float("nan"))
-            + moduleres.get("added event diff", float("nan"))
-            + moduleres.get("added construction diff", float("nan"))
-            + moduleres.get("added global begin run diff", float("nan"))
-            + moduleres.get("added stream begin run diff", float("nan"))
-            + moduleres.get("added global begin luminosity block diff", float("nan"))
-            + moduleres.get("added stream begin luminosity block diff", float("nan"))
-        )
+            moduleres.get("added event setup diff", 0)
+            + moduleres.get("added event diff", 0)
+            + moduleres.get("added construction diff", 0)
+            + moduleres.get("added global begin run diff", 0)
+            + moduleres.get("added stream begin run diff", 0)
+            + moduleres.get("added global begin luminosity block diff", 0)
+            + moduleres.get("added stream begin luminosity block diff", 0)
+        ) if isinstance(moduleres.get("added event setup diff", 0), (int, float)) and isinstance(moduleres.get("added event diff", 0), (int, float)) and isinstance(moduleres.get("added construction diff", 0), (int, float)) and isinstance(moduleres.get("added global begin run diff", 0), (int, float)) and isinstance(moduleres.get("added stream begin run diff", 0), (int, float)) and isinstance(moduleres.get("added global begin luminosity block diff", 0), (int, float)) and isinstance(moduleres.get("added stream begin luminosity block diff", 0), (int, float)) else "N/A"
         moduleres["added total diff"] = added_total_diff
 dumpfile = (
     os.path.dirname(os.path.realpath(sys.argv[2]))
@@ -292,7 +297,7 @@ with open(dumpfile, "w") as f:
 
 for item in sorted(
     datamapres.items(),
-    key=lambda x: x[1].get("added total diff", float("nan")),
+    key=lambda x: x[1].get("added total diff", float("-inf")) if isinstance(x[1].get("added total diff", float("-inf")), (int, float)) else float("-inf"),
     reverse=True,
 ):
     key = "%s|%s|%s" % (
@@ -304,12 +309,9 @@ for item in sorted(
         moduleib = datamapib.get(key, {})
         modulepr = datamappr.get(key, {})
         moduleres = datamapres.get(key, {})
-        if moduleres.get("added total diff", float("nan")) == math.nan:
-            print("Error: module %s is not in diff results" % key)
-            continue
         cellString = '<td align="right" '
         color = ""
-        addedtotaldiff = moduleres.get("added total diff", float("nan"))
+        addedtotaldiff = moduleres.get("added total diff", float("-inf")) if isinstance(moduleres.get("added total diff", float("-inf")), (int, float)) else float("-inf")
         if addedtotaldiff > threshold:
             color = 'bgcolor="orange"'
         if addedtotaldiff > error_threshold:
@@ -323,124 +325,118 @@ for item in sorted(
         summaryLines += [
             "<tr>",
             '<td align="center">%s<BR>%s<BR> %s</td>'
-            % (moduleres.get("label", ""), moduleres.get("type", ""), moduleres.get("record", "")),
-            '<td align="right"> %0.2f<br> %0.2f<br> %0.2f</td>'
-            % (
-                moduleib.get("added construction", float("nan")),
-                modulepr.get("added construction", float("nan")),
-                moduleres.get("added construction diff", float("nan")),
-            ),
-            '<td align="right"> %0.2f<br> %0.2f<br> %0.2f</td>'
-            % (
-                moduleib.get("added global begin run", float("nan"))
-                + moduleib.get("added stream begin run", float("nan")),
-                modulepr.get("added global begin run", float("nan"))
-                + modulepr.get("added stream begin run", float("nan")),
-                moduleres.get("added global begin run diff", float("nan"))
-                + moduleres.get("added stream begin run diff", float("nan")),
-            ),
-            '<td align="right"> %0.2f<br> %0.2f<br> %0.2f</td>'
-            % (
-                moduleib.get("added global begin luminosity block", float("nan"))
-                + moduleib.get("added stream begin luminosity block", float("nan")),
-                modulepr.get("added global begin luminosity block", float("nan"))
-                + modulepr.get("added stream begin luminosity block", float("nan")),
-                moduleres.get("added global begin luminosity block diff", float("nan"))
-                + moduleres.get("added stream begin luminosity block diff", float("nan")),
-            ),
-            '<td align="right"> %0.2f<br> %0.2f<br> %0.2f</td>'
-            % (
-                moduleib.get("added event", float("nan")),
-                modulepr.get("added event", float("nan")),
-                moduleres.get("added event diff", float("nan")),
-            ),
-            '<td align="right"> %0.2f<br> %0.2f<br> %0.2f</td>'
-            % (
-                moduleib.get("added event setup", float("nan")),
-                modulepr.get("added event setup", float("nan")),
-                moduleres.get("added event setup diff", float("nan")),
-            ),
+            % (moduleres.get("label", ""), moduleres.get("type", ""), moduleres.get("record", ""))
+        ]
+        added_construction_ib = moduleres.get("added construction IB", "N/A") if isinstance(moduleres.get("added construction IB", "N/A"), (int, float)) else "N/A"
+        added_construction_pr = moduleres.get("added construction PR", "N/A") if isinstance(moduleres.get("added construction PR", "N/A"), (int, float)) else "N/A"
+        added_construction_diff = moduleres.get("added construction diff", "N/A") if isinstance(moduleres.get("added construction diff", "N/A"), (int, float)) else "N/A"
+        summaryLines += [
+            f'<td align="right"> {added_construction_ib}<br> {added_construction_pr}<br> {added_construction_diff}</td>'
+        ]
+        added_begin_run_ib = (moduleib.get("added global begin run", "N/A") + moduleib.get("added stream begin run", "N/A")) if isinstance(moduleib.get("added global begin run", "N/A"), (int, float)) and isinstance(moduleib.get("added stream begin run", "N/A"), (int, float)) else "N/A"
+        added_begin_run_pr = (modulepr.get("added global begin run", "N/A") + modulepr.get("added stream begin run", "N/A")) if isinstance(modulepr.get("added global begin run", "N/A"), (int, float)) and isinstance(modulepr.get("added stream begin run", "N/A"), (int, float)) else "N/A"
+        added_begin_run_diff = (moduleres.get("added global begin run diff", "N/A") + moduleres.get("added stream begin run diff", "N/A")) if isinstance(moduleres.get("added global begin run diff", "N/A"), (int, float)) and isinstance(moduleres.get("added stream begin run diff", "N/A"), (int, float)) else "N/A"
+        summaryLines += [
+            f'<td align="right"> {added_begin_run_ib}<br> {added_begin_run_pr}<br> {added_begin_run_diff}</td>'
+        ]
+        added_luminosity_block_ib = (moduleib.get("added global begin luminosity block", "N/A") + moduleib.get("added stream begin luminosity block", "N/A")) if isinstance(moduleib.get("added global begin luminosity block", "N/A"), (int, float)) and isinstance(moduleib.get("added stream begin luminosity block", "N/A"), (int, float)) else "N/A"
+        added_luminosity_block_pr = (modulepr.get("added global begin luminosity block", "N/A") + modulepr.get("added stream begin luminosity block", "N/A")) if isinstance(modulepr.get("added global begin luminosity block", "N/A"), (int, float)) and isinstance(modulepr.get("added stream begin luminosity block", "N/A"), (int, float)) else "N/A"
+        added_luminosity_block_diff = (moduleres.get("added global begin luminosity block diff", "N/A") + moduleres.get("added stream begin luminosity block diff", "N/A")) if isinstance(moduleres.get("added global begin luminosity block diff", "N/A"), (int, float)) and isinstance(moduleres.get("added stream begin luminosity block diff", "N/A"), (int, float)) else "N/A"
+        summaryLines += [
+            f'<td align="right"> {added_luminosity_block_ib}<br> {added_luminosity_block_pr}<br> {added_luminosity_block_diff}</td>'
+        ]
+        added_event_ib = moduleib.get("added event", "N/A") if isinstance(moduleib.get("added event", "N/A"), (int, float)) else "N/A"
+        added_event_pr = modulepr.get("added event", "N/A") if isinstance(modulepr.get("added event", "N/A"), (int, float)) else "N/A"
+        added_event_diff = moduleres.get("added event diff", "N/A") if isinstance(moduleres.get("added event diff", "N/A"), (int, float)) else "N/A"
+        summaryLines += [
+            f'<td align="right"> {added_event_ib}<br> {added_event_pr}<br> {added_event_diff}</td>'
+        ]
+        added_event_setup_ib = moduleib.get("added event setup", "N/A") if isinstance(moduleib.get("added event setup", "N/A"), (int, float)) else "N/A"
+        added_event_setup_pr = modulepr.get("added event setup", "N/A") if isinstance(modulepr.get("added event setup", "N/A"), (int, float)) else "N/A"
+        added_event_setup_diff = moduleres.get("added event setup diff", "N/A") if isinstance(moduleres.get("added event setup diff", "N/A"), (int, float)) else "N/A"
+        summaryLines += [
+            f'<td align="right"> {added_event_setup_ib}<br> {added_event_setup_pr}<br> {added_event_setup_diff}</td>'
+        ]
+        added_total_ib = (moduleib.get("added event setup", "N/A") 
+                + moduleib.get("added event", "N/A")
+                + moduleib.get("added construction", "N/A")
+                + moduleib.get("added global begin run", "N/A")
+                + moduleib.get("added stream begin run", "N/A")
+                + moduleib.get("added global begin luminosity block", "N/A")
+                + moduleib.get("added stream begin luminosity block", "N/A")) if isinstance(moduleib.get("added event setup", "N/A"), (int, float)) and isinstance(moduleib.get("added event", "N/A"), (int, float)) and isinstance(moduleib.get("added construction", "N/A"), (int, float)) and isinstance(moduleib.get("added global begin run", "N/A"), (int, float)) and isinstance(moduleib.get("added stream begin run", "N/A"), (int, float)) and isinstance(moduleib.get("added global begin luminosity block", "N/A"), (int, float)) and isinstance(moduleib.get("added stream begin luminosity block", "N/A"), (int, float)) else "N/A"
+        added_total_pr = (modulepr.get("added event setup", "N/A")
+                + modulepr.get("added event", "N/A")
+                + modulepr.get("added construction", "N/A")
+                + modulepr.get("added global begin run", "N/A")
+                + modulepr.get("added stream begin run", "N/A")
+                + modulepr.get("added global begin luminosity block", "N/A")
+                + modulepr.get("added stream begin luminosity block", "N/A")) if isinstance(modulepr.get("added event setup", "N/A"), (int, float)) and isinstance(modulepr.get("added event", "N/A"), (int, float)) and isinstance(modulepr.get("added construction", "N/A"), (int, float)) and isinstance(modulepr.get("added global begin run", "N/A"), (int, float)) and isinstance(modulepr.get("added stream begin run", "N/A"), (int, float)) and isinstance(modulepr.get("added global begin luminosity block", "N/A"), (int, float)) and isinstance(modulepr.get("added stream begin luminosity block", "N/A"), (int, float)) else "N/A"
+        added_total_diff = (moduleres.get("added event setup diff", "N/A")
+                + moduleres.get("added event diff", "N/A")
+                + moduleres.get("added construction diff", "N/A")
+                + moduleres.get("added global begin run diff", "N/A")
+                + moduleres.get("added stream begin run diff", "N/A")
+                + moduleres.get("added global begin luminosity block diff", "N/A")
+                + moduleres.get("added stream begin luminosity block diff", "N/A")) if isinstance(moduleres.get("added event setup diff", "N/A"), (int, float)) and isinstance(moduleres.get("added event diff", "N/A"), (int, float)) and isinstance(moduleres.get("added construction diff", "N/A"), (int, float)) and isinstance(moduleres.get("added global begin run diff", "N/A"), (int, float)) and isinstance(moduleres.get("added stream begin run diff", "N/A"), (int, float)) and isinstance(moduleres.get("added global begin luminosity block diff", "N/A"), (int, float)) and isinstance(moduleres.get("added stream begin luminosity block diff", "N/A"), (int, float)) else "N/A"
+        summaryLines += [
             cellString
-            + "%0.2f<br> %0.2f<br> %0.2f</td>"
-            % (
-                moduleib.get("added event setup", float("nan"))
-                + moduleib.get("added event", float("nan"))
-                + moduleib.get("added construction", float("nan"))
-                + moduleib.get("added global begin run", float("nan"))
-                + moduleib.get("added stream begin run", float("nan"))
-                + moduleib.get("added global begin luminosity block", float("nan"))
-                + moduleib.get("added stream begin luminosity block", float("nan")),
-                modulepr.get("added event setup", float("nan"))
-                + modulepr.get("added event", float("nan"))
-                + modulepr.get("added construction", float("nan"))
-                + modulepr.get("added global begin run", float("nan"))
-                + modulepr.get("added stream begin run", float("nan"))
-                + modulepr.get("added global begin luminosity block", float("nan"))
-                + modulepr.get("added stream begin luminosity block", float("nan")),
-                moduleres.get("added event setup diff", float("nan"))
-                + moduleres.get("added event diff", float("nan"))
-                + moduleres.get("added construction diff", float("nan"))
-                + moduleres.get("added global begin run diff", float("nan"))
-                + moduleres.get("added stream begin run diff", float("nan"))
-                + moduleres.get("added global begin luminosity block diff", float("nan"))
-                + moduleres.get("added stream begin luminosity block diff", float("nan")),
-            ),
-            '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-            % (
-                moduleib.get("nAlloc construction", float("nan")),
-                modulepr.get("nAlloc construction", float("nan")),
-                moduleres.get("nAlloc construction diff", float("nan")),
-            ),
-            '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-            % (
-                moduleib.get("nAlloc global begin run", float("nan"))
-                + moduleib.get("nAlloc stream begin run", float("nan")),
-                modulepr.get("nAlloc global begin run", float("nan"))
-                + modulepr.get("nAlloc stream begin run", float("nan")),
-                moduleres.get("nAlloc global begin run diff", float("nan"))
-                + moduleres.get("nAlloc stream begin run diff", float("nan")),
-            ),
-            '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-            % (
-                moduleib.get("nAlloc global begin luminosity block", float("nan"))
-                + moduleib.get("nAlloc stream begin luminosity block", float("nan")),
-                modulepr.get("nAlloc global begin luminosity block", float("nan"))
-                + modulepr.get("nAlloc stream begin luminosity block", float("nan")),
-                moduleres.get("nAlloc global begin luminosity block diff", float("nan"))
-                + moduleres.get("nAlloc stream begin luminosity block diff", float("nan")),
-            ),
-            '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-            % (
-                moduleib.get("nAlloc event", float("nan")),
-                modulepr.get("nAlloc event", float("nan")),
-                moduleres.get("nAlloc event diff", float("nan")),
-            ),
-            '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-            % (
-                moduleib.get("nAlloc event setup", float("nan")),
-                modulepr.get("nAlloc event setup", float("nan")),
-                moduleres.get("nAlloc event setup diff", float("nan")),
-            ),
-            '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-            % (
-                moduleib.get("nAlloc event setup", float("nan"))
-                + moduleib.get("nAlloc event", float("nan"))
-                + moduleib.get("nAlloc construction", float("nan")),
-                modulepr.get("nAlloc event setup", float("nan"))
-                + modulepr.get("nAlloc event", float("nan"))
-                + modulepr.get("nAlloc construction", float("nan")),
-                moduleres.get("nAlloc event setup diff", float("nan"))
-                + moduleres.get("nAlloc event diff", float("nan"))
-                + moduleres.get("nAlloc construction diff", float("nan")),
-            ),
-            '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-            % (
-                moduleib.get("transitions", float("nan")),
-                modulepr.get("transitions", float("nan")),
-                moduleib.get("transitions", float("nan"))
-                - modulepr.get("transitions", float("nan")),
-            ),
-            "</tr>",
+            + f"{added_total_ib}<br>{added_total_pr}<br>{added_total_diff}</td>"
+        ]
+        nAlloc_construction_ib = moduleres.get("nAlloc construction IB", "N/A") if isinstance(moduleres.get("nAlloc construction IB", "N/A"), (int, float)) else "N/A"
+        nAlloc_construction_pr = moduleres.get("nAlloc construction PR", "N/A") if isinstance(moduleres.get("nAlloc construction PR", "N/A"), (int, float)) else "N/A"
+        nAlloc_construction_diff = moduleres.get("nAlloc construction diff", "N/A") if isinstance(moduleres.get("nAlloc construction diff", "N/A"), (int, float)) else "N/A"
+        summaryLines += [
+            f'<td align="right">{nAlloc_construction_ib}<br>{nAlloc_construction_pr}<br>{nAlloc_construction_diff}</td>'
+        ]
+        nAlloc_begin_run_ib = (moduleres.get("nAlloc global begin run IB", "N/A") + moduleres.get("nAlloc stream begin run IB", "N/A")) if isinstance(moduleres.get("nAlloc global begin run IB", "N/A"), (int, float)) and isinstance(moduleres.get("nAlloc stream begin run IB", "N/A"), (int, float)) else "N/A"
+        nAlloc_begin_run_pr = (moduleres.get("nAlloc global begin run PR", "N/A") + moduleres.get("nAlloc stream begin run PR", "N/A")) if isinstance(moduleres.get("nAlloc global begin run PR", "N/A"), (int, float)) and isinstance(moduleres.get("nAlloc stream begin run PR", "N/A"), (int, float)) else "N/A"
+        nAlloc_begin_run_diff = (moduleres.get("nAlloc global begin run diff", "N/A") + moduleres.get("nAlloc stream begin run diff", "N/A")) if isinstance(moduleres.get("nAlloc global begin run diff", "N/A"), (int, float)) and isinstance(moduleres.get("nAlloc stream begin run diff", "N/A"), (int, float)) else "N/A"
+        summaryLines += [
+            f'<td align="right">{nAlloc_begin_run_ib}<br>{nAlloc_begin_run_pr}<br>{nAlloc_begin_run_diff}</td>'
+        ]
+        nAlloc_begin_luminosity_block_ib = (moduleres.get("nAlloc global begin luminosity block IB", "N/A") + moduleres.get("nAlloc stream begin luminosity block IB", "N/A")) if isinstance(moduleres.get("nAlloc global begin luminosity block IB", "N/A"), (int, float)) and isinstance(moduleres.get("nAlloc stream begin luminosity block IB", "N/A"), (int, float)) else "N/A"
+        nAlloc_begin_luminosity_block_pr = (moduleres.get("nAlloc global begin luminosity block PR", "N/A") + moduleres.get("nAlloc stream begin luminosity block PR", "N/A")) if isinstance(moduleres.get("nAlloc global begin luminosity block PR", "N/A"), (int, float)) and isinstance(moduleres.get("nAlloc stream begin luminosity block PR", "N/A"), (int, float)) else "N/A"
+        nAlloc_begin_luminosity_block_diff = (moduleres.get("nAlloc global begin luminosity block diff", "N/A") + moduleres.get("nAlloc stream begin luminosity block diff", "N/A")) if isinstance(moduleres.get("nAlloc global begin luminosity block diff", "N/A"), (int, float)) and isinstance(moduleres.get("nAlloc stream begin luminosity block diff", "N/A"), (int, float)) else "N/A"
+        summaryLines += [
+            f'<td align="right">{nAlloc_begin_luminosity_block_ib}<br>{nAlloc_begin_luminosity_block_pr}<br>{nAlloc_begin_luminosity_block_diff}</td>'
+        ]
+        nAlloc_event_ib = moduleres.get("nAlloc event IB", "N/A") if isinstance(moduleres.get("nAlloc event IB", "N/A"), (int, float)) else "N/A"
+        nAlloc_event_pr = moduleres.get("nAlloc event PR", "N/A") if isinstance(moduleres.get("nAlloc event PR", "N/A"), (int, float)) else "N/A"
+        nAlloc_event_diff = moduleres.get("nAlloc event diff", "N/A") if isinstance(moduleres.get("nAlloc event diff", "N/A"), (int, float)) else "N/A"
+        summaryLines += [
+            f'<td align="right">{nAlloc_event_ib}<br>{nAlloc_event_pr}<br>{nAlloc_event_diff}</td>'
+        ]
+        nAlloc_event_setup_ib = moduleres.get("nAlloc event setup IB", "N/A") if isinstance(moduleres.get("nAlloc event setup IB", "N/A"), (int, float)) else "N/A"
+        nAlloc_event_setup_pr = moduleres.get("nAlloc event setup PR", "N/A") if isinstance(moduleres.get("nAlloc event setup PR", "N/A"), (int, float)) else "N/A"
+        nAlloc_event_setup_diff = moduleres.get("nAlloc event setup diff", "N/A") if isinstance(moduleres.get("nAlloc event setup diff", "N/A"), (int, float)) else "N/A"
+        summaryLines += [
+            f'<td align="right">{nAlloc_event_setup_ib}<br>{nAlloc_event_setup_pr}<br>{nAlloc_event_setup_diff}</td>'
+        ]
+        nAlloc_total_ib = (
+                    moduleres.get("nAlloc event setup IB", "N/A") + moduleres.get("nAlloc event IB", "N/A")
+               + moduleres.get("nAlloc construction IB", "N/A") ) if isinstance(moduleres.get("nAlloc event setup IB", "N/A"), (int, float)) and isinstance(moduleres.get("nAlloc construction IB", "N/A"), (int, float)) and isinstance(moduleres.get("nAlloc event IB", "N/A"), (int, float)) else "N/A"
+        nAlloc_total_pr = (
+                moduleres.get("nAlloc event setup PR", "N/A")
+                + moduleres.get("nAlloc event PR", "N/A")
+                + moduleres.get("nAlloc construction PR", "N/A")) if isinstance(moduleres.get("nAlloc event setup PR", "N/A"), (int, float)) and isinstance(moduleres.get("nAlloc construction PR", "N/A"), (int, float)) and isinstance(moduleres.get("nAlloc event PR", "N/A"), (int, float)) else "N/A"
+        nAlloc_total_diff = (
+                moduleres.get("nAlloc event setup diff", "N/A")
+                + moduleres.get("nAlloc event diff", "N/A")
+                + moduleres.get("nAlloc construction diff", "N/A")) if isinstance(moduleres.get("nAlloc event setup diff", "N/A"), (int, float)) and isinstance(moduleres.get("nAlloc construction diff", "N/A"), (int, float)) and isinstance(moduleres.get("nAlloc event diff", "N/A"), (int, float)) else "N/A"
+        summaryLines += [
+            f'<td align="right">{nAlloc_total_ib}<br>{nAlloc_total_pr}<br>{nAlloc_total_diff}</td>'
+        ]
+        transitions_ib = moduleib.get("transitions", "N/A") if isinstance(moduleib.get("transitions", "N/A"), (int, float)) else "N/A"
+        transitions_pr = modulepr.get("transitions", "N/A")  if isinstance(modulepr.get("transitions", "N/A"), (int, float)) else "N/A"
+        if isinstance(transitions_ib, (int, float)) and isinstance(transitions_pr, (int, float)):
+            transitions_diff = (transitions_ib - transitions_pr)
+        else:
+            if not isinstance(transitions_ib, (int, float)) and isinstance(transitions_pr, (int, float)):
+                transitions_diff = transitions_pr - 0
+            elif isinstance(transitions_ib, (int, float)) and not isinstance(transitions_pr, (int, float)):
+                transitions_diff = 0 -transitions_ib
+        summaryLines += [
+            f'<td align="right">{transitions_ib}<br>{transitions_pr}<br>{transitions_diff}</td>'
         ]
 
 summaryLines += []
