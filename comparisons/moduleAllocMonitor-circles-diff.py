@@ -3,30 +3,20 @@
 import sys
 import json
 import os
+import math
 
 
-def diff_from(metrics, data, data_total, dest, dest_total, res):
+def diff_from(metrics, data, dest, res):
     for metric in metrics:
-        dmetric = dest[metric] - data[metric]
-        dkey = "%s diff" % metric
-        res[dkey] = dmetric
-        pdmetric = 0.0
-        pdmetric = dmetric
-        pdkey = "%s pdiff" % metric
-        res[pdkey] = pdmetric
-        fkey = "%s frac" % metric
-        fdest = 100 * dest[metric] / dest_total[metric] if dest_total[metric] != 0 else 0.0
-        dest[fkey] = fdest
-        fdata = 100 * data[metric] / data_total[metric] if data_total[metric] != 0 else 0.0
-        data[fkey] = fdata
-        dfmetric = fdest - fdata
-        dfkey = "%s frac diff" % metric
-        res[dfkey] = dfmetric
-        pdfmetric = 0.0
-        pdfmetric = dfmetric
-        dkpkey = "%s frac diff" % metric
-        res[dkpkey] = pdfmetric
-
+        ibkey = "%s IB" % metric
+        res[ibkey] = data.get(metric, float("nan"))
+        prkey = "%s PR" % metric
+        res[prkey] = dest.get(metric, float("nan"))
+        if math.isnan(res[ibkey]) or math.isnan(res[prkey]):
+            res[metric + " diff"] = float("nan")
+        else:
+            dmetric = dest.get(metric) - data.get(metric)
+            res[metric + " diff"] = dmetric
 
 if len(sys.argv) == 1:
     print("""Usage: resources-diff.py IB_FILE PR_FILE
@@ -95,40 +85,55 @@ if ibdata["total"]["label"] != prdata["total"]["label"]:
 results = {}
 results["resources"] = []
 for resource in prdata["resources"]:
+    resourcediff = resource.copy()
+    resourceib = resource.copy()
+    resourcepr = resource.copy()
     for k, v in resource.items():
-        dkey = "%s diff" % k
-        results["resources"].append({k: "%s" % v})
-        results["resources"].append({dkey: "%s diff" % v})
+        resourcediff[k] = "%s diff" % v
+        resourceib[k] = "%s IB" % v
+        resourcepr[k] = "%s PR" % v
+    results["resources"].append(resourcediff)
+    results["resources"].append(resourceib)
+    results["resources"].append(resourcepr)
 
 results["total"] = {}
 results["total"]["type"] = prdata["total"]["type"]
 results["total"]["label"] = prdata["total"]["label"]
 
 diff_from(
-    metrics, ibdata["total"], ibdata["total"], prdata["total"], prdata["total"], results["total"]
+    metrics, ibdata["total"], prdata["total"], results["total"]
 )
 
 results["modules"] = []
+keys = set()
 for module in prdata["modules"]:
     key = module["label"] + "|" + module["type"] + "|" + module["record"]
+    keys.add(key)
+for module in ibdata["modules"]:
+    key = module["label"] + "|" + module["type"] + "|" + module["record"]
+    keys.add(key)
+for key in sorted(keys):
     result = {}
-    result["type"] = module["type"]
-    result["label"] = module["label"]
-    result["record"] = module["record"]
-    result["transitions"] = module["transitions"]
-    if key in datamapib:
-        diff_from(metrics, datamapib[key], ibdata["total"], module, prdata["total"], result)
-        results["modules"].append(result)
+    if key in datamapib and key not in datamappr:
+        result["type"] = datamapib.get(key).get("type")
+        result["label"] = datamapib.get(key).get("label")
+        result["record"] = datamapib.get(key).get("record")
+        diff_from(metrics, datamapib.get(key, {}), {}, result)
+    elif key in datamappr and key not in datamapib:
+        result["type"] = datamappr.get(key).get("type")
+        result["label"] = datamappr.get(key).get("label")
+        result["record"] = datamappr.get(key).get("record")
+        diff_from(metrics, {}, datamappr.get(key, {}), result)
     else:
-        datamapib[key] = module
-        diff_from(metrics, datamapib[key], ibdata["total"], module, prdata["total"], result)
-        results["modules"].append(result)
+        result["type"] = datamappr.get(key).get("type")
+        result["label"] = datamappr.get(key).get("label")
+        result["record"] = datamappr.get(key).get("record")
+        diff_from(metrics, datamapib.get(key, {}), datamappr.get(key, {}), result)
+    results["modules"].append(result)
 
-datamapres = {
-    module["label"] + "|" + module["type"] + "|" + module["record"]: module
-    for module in results["modules"]
-}
-
+datamapres = {}
+for module in results["modules"]:
+    datamapres["%s|%s|%s" % (module.get("label", ""), module.get("type", ""), module.get("record", ""))] = module
 threshold = 5000.0
 error_threshold = 20000.0
 
@@ -252,153 +257,181 @@ summaryLines += [
 ]
 
 for item in datamapres.items():
-    key = item[1]["label"] + "|" + item[1]["type"] + "|" + item[1]["record"]
-    if not key == "||":
-        moduleib = datamapib[key]
-        modulepr = datamappr[key]
-        moduleres = datamapres[key]
+    key = "%s|%s|%s" % (item[1].get("label", ""), item[1].get("type", ""), item[1].get("record", ""))
+    if not key == "None|None|None" and not key == "||":
+        moduleib = datamapib.get(key, {})
+        modulepr = datamappr.get(key, {})
+        moduleres = datamapres.get(key, {})
         added_total_pr = (
-            modulepr.get("added event setup", 0)
-            + modulepr.get("added event", 0)
-            + modulepr.get("added construction", 0)
-            + modulepr.get("added global begin run", 0)
-            + modulepr.get("added stream begin run", 0)
-            + modulepr.get("added global begin luminosity block", 0)
-            + modulepr.get("added stream begin luminosity block", 0)
+            modulepr.get("added event setup", float("nan"))
+            + modulepr.get("added event", float("nan"))
+            + modulepr.get("added construction", float("nan"))
+            + modulepr.get("added global begin run", float("nan"))
+            + modulepr.get("added stream begin run", float("nan"))
+            + modulepr.get("added global begin luminosity block", float("nan"))
+            + modulepr.get("added stream begin luminosity block", float("nan"))
         )
-        modulepr["added total"] = added_total_pr
         added_total_ib = (
-            moduleib.get("added event setup", 0)
-            + moduleib.get("added event", 0)
-            + moduleib.get("added construction", 0)
-            + moduleib.get("added global begin run", 0)
-            + moduleib.get("added stream begin run", 0)
-            + moduleib.get("added global begin luminosity block", 0)
-            + moduleib.get("added stream begin luminosity block", 0)
+            moduleib.get("added event setup", float("nan"))
+            + moduleib.get("added event", float("nan"))
+            + moduleib.get("added construction", float("nan"))
+            + moduleib.get("added global begin run", float("nan"))
+            + moduleib.get("added stream begin run", float("nan"))
+            + moduleib.get("added global begin luminosity block", float("nan"))
+            + moduleib.get("added stream begin luminosity block", float("nan"))
         )
-        moduleib["added total"] = added_total_ib
         added_total_diff = (
-            moduleres.get("added event setup diff", 0)
-            + moduleres.get("added event diff", 0)
-            + moduleres.get("added construction diff", 0)
-            + moduleres.get("added global begin run diff", 0)
-            + moduleres.get("added stream begin run diff", 0)
-            + moduleres.get("added global begin luminosity block diff", 0)
-            + moduleres.get("added stream begin luminosity block diff", 0)
+            moduleres.get("added event setup diff", float("nan"))
+            + moduleres.get("added event diff", float("nan"))
+            + moduleres.get("added construction diff", float("nan"))
+            + moduleres.get("added global begin run diff", float("nan"))
+            + moduleres.get("added stream begin run diff", float("nan"))
+            + moduleres.get("added global begin luminosity block diff", float("nan"))
+            + moduleres.get("added stream begin luminosity block diff", float("nan"))
         )
         moduleres["added total diff"] = added_total_diff
+dumpfile = os.path.dirname(sys.argv[2]) + "/diff-" + os.path.basename(sys.argv[2])
+with open(dumpfile, "w") as f:
+    json.dump(results, f, indent=2)
 
 for item in sorted(
     datamapres.items(),
-    key=lambda x: x[1]["added total diff"],
+    key=lambda x: x[1].get("added total diff", float("nan")),
     reverse=True,
 ):
-    key = item[1]["label"] + "|" + item[1]["type"] + "|" + item[1]["record"]
-    if not key == "||":
-        moduleib = datamapib[key]
-        modulepr = datamappr[key]
-        moduleres = datamapres[key]
+    key = "%s|%s|%s" % (item[1].get("label", ""), item[1].get("type", ""), item[1].get("record", ""))
+    if not key == "None|None|None" and not key == "||":
+        moduleib = datamapib.get(key, {})
+        modulepr = datamappr.get(key, {})
+        moduleres = datamapres.get(key, {})
+        if moduleres.get("added total diff", float("nan")) == math.nan:
+            print("Error: module %s is not in diff results" % key)
+            continue
         cellString = '<td align="right" '
         color = ""
-        if moduleres["added total diff"] > threshold:
+        addedtotaldiff = moduleres.get("added total diff", float("nan"))
+        if addedtotaldiff > threshold:
             color = 'bgcolor="orange"'
-        if moduleres["added total diff"] > error_threshold:
+        if addedtotaldiff > error_threshold:
             color = 'bgcolor="red"'
-        if moduleres["added total diff"] < -1.0 * threshold:
+        if addedtotaldiff < -1.0 * threshold:
             color = 'bgcolor="cyan"'
-        if moduleres["added total diff"] < -1.0 * error_threshold:
+        if addedtotaldiff < -1.0 * error_threshold:
             color = 'bgcolor="green"'
         cellString += color
         cellString += ">"
         summaryLines += [
             "<tr>",
             '<td align="center">%s<BR>%s<BR> %s</td>'
-            % (moduleres["label"], moduleres["type"], moduleres["record"]),
+            % (moduleres.get("label", ""), moduleres.get("type", ""), moduleres.get("record", "")),
             '<td align="right"> %0.2f<br> %0.2f<br> %0.2f</td>'
             % (
-                moduleib["added construction"],
-                modulepr["added construction"],
-                moduleres["added construction diff"],
+                moduleib.get("added construction",float("nan")),
+                modulepr.get("added construction",float("nan")),
+                moduleres.get("added construction diff", float("nan")),
             ),
             '<td align="right"> %0.2f<br> %0.2f<br> %0.2f</td>'
             % (
-                moduleib["added global begin run"] + moduleib["added stream begin run"],
-                modulepr["added global begin run"] + modulepr["added stream begin run"],
-                moduleres["added global begin run diff"]
-                + moduleres["added stream begin run diff"],
+                moduleib.get("added global begin run", float("nan"))
+                + moduleib.get("added stream begin run", float("nan")),
+                modulepr.get("added global begin run", float("nan"))
+                + modulepr.get("added stream begin run", float("nan")),
+                moduleres.get("added global begin run diff", float("nan"))
+                + moduleres.get("added stream begin run diff", float("nan"))
             ),
             '<td align="right"> %0.2f<br> %0.2f<br> %0.2f</td>'
             % (
-                moduleib["added global begin luminosity block"]
-                + moduleib["added stream begin luminosity block"],
-                modulepr["added global begin luminosity block"]
-                + modulepr["added stream begin luminosity block"],
-                moduleres["added global begin luminosity block diff"]
-                + moduleres["added stream begin luminosity block diff"],
+                moduleib.get("added global begin luminosity block", float("nan"))
+                + moduleib.get("added stream begin luminosity block", float("nan")),
+                modulepr.get("added global begin luminosity block", float("nan"))
+                + modulepr.get("added stream begin luminosity block", float("nan")),
+                moduleres.get("added global begin luminosity block diff", float("nan"))
+                + moduleres.get("added stream begin luminosity block diff", float("nan"))
             ),
             '<td align="right"> %0.2f<br> %0.2f<br> %0.2f</td>'
             % (
-                moduleib["added event"],
-                modulepr["added event"],
-                moduleres["added event diff"],
+                moduleib.get("added event", float("nan")),
+                modulepr.get("added event", float("nan")),
+                moduleres.get("added event diff", float("nan"))
             ),
             '<td align="right"> %0.2f<br> %0.2f<br> %0.2f</td>'
             % (
-                moduleib["added event setup"],
-                modulepr["added event setup"],
-                moduleres["added event setup diff"],
+                moduleib.get("added event setup", float("nan")),
+                modulepr.get("added event setup", float("nan")),
+                moduleres.get("added event setup diff", float("nan"))
             ),
             cellString
             + "%0.2f<br> %0.2f<br> %0.2f</td>"
-            % (
-                moduleib["added total"],
-                modulepr["added total"],
-                moduleres["added total diff"],
+            % ( moduleib.get("added event setup", float("nan"))
+            + moduleib.get("added event", float("nan")) 
+            + moduleib.get("added construction", float("nan"))
+            + moduleib.get("added global begin run", float("nan"))
+            + moduleib.get("added stream begin run", float("nan"))
+            + moduleib.get("added global begin luminosity block", float("nan"))
+            + moduleib.get("added stream begin luminosity block", float("nan")),
+            modulepr.get("added event setup", float("nan"))
+            + modulepr.get("added event", float("nan"))
+            + modulepr.get("added construction", float("nan"))
+            + modulepr.get("added global begin run", float("nan"))
+            + modulepr.get("added stream begin run", float("nan"))
+            + modulepr.get("added global begin luminosity block", float("nan"))
+            + modulepr.get("added stream begin luminosity block", float("nan")),
+            moduleres.get("added event setup diff", float("nan"))
+            + moduleres.get("added event diff", float("nan"))
+            + moduleres.get("added construction diff", float("nan"))
+            + moduleres.get("added global begin run diff", float("nan"))
+            + moduleres.get("added stream begin run diff", float("nan"))
+            + moduleres.get("added global begin luminosity block diff", float("nan"))
+            + moduleres.get("added stream begin luminosity block diff", float("nan"))
             ),
             '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
             % (
-                moduleib["nAlloc construction"],
-                modulepr["nAlloc construction"],
-                moduleres["nAlloc construction diff"],
+                moduleib.get("nAlloc construction", float("nan")),
+                modulepr.get("nAlloc construction", float("nan")),
+                moduleres.get("nAlloc construction diff", float("nan")  ),
             ),
             '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
             % (
-                moduleib["nAlloc global begin run"] + moduleib["nAlloc stream begin run"],
-                modulepr["nAlloc global begin run"] + modulepr["nAlloc stream begin run"],
-                moduleres["nAlloc global begin run diff"]
-                + moduleres["nAlloc stream begin run diff"],
+                moduleib.get("nAlloc global begin run", float("nan"))
+                + moduleib.get("nAlloc stream begin run", float("nan")),
+                modulepr.get("nAlloc global begin run", float("nan"))
+                + modulepr.get("nAlloc stream begin run", float("nan")),
+                moduleres.get("nAlloc global begin run diff", float("nan"))
+                + moduleres.get("nAlloc stream begin run diff", float("nan")),
             ),
             '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
             % (
-                moduleib["nAlloc global begin luminosity block"]
-                + moduleib["nAlloc stream begin luminosity block"],
-                modulepr["nAlloc global begin luminosity block"]
-                + modulepr["nAlloc stream begin luminosity block"],
-                moduleres["nAlloc global begin luminosity block diff"]
-                + moduleres["nAlloc stream begin luminosity block diff"],
+                moduleib.get("nAlloc global begin luminosity block", float("nan")) 
+                + moduleib.get("nAlloc stream begin luminosity block", float("nan")),
+                modulepr.get("nAlloc global begin luminosity block", float("nan"))
+                + modulepr.get("nAlloc stream begin luminosity block", float("nan")),
+                moduleres.get("nAlloc global begin luminosity block diff", float("nan"))
+                + moduleres.get("nAlloc stream begin luminosity block diff", float("nan")),
             ),
             '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-            % (moduleib["nAlloc event"], modulepr["nAlloc event"], moduleres["nAlloc event diff"]),
-            '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-            % (
-                moduleib["nAlloc event setup"],
-                modulepr["nAlloc event setup"],
-                moduleres["nAlloc event setup diff"],
-            ),
+            % (moduleib.get("nAlloc event", float("nan")),
+                modulepr.get("nAlloc event", float("nan")),
+                moduleres.get("nAlloc event diff", float("nan"))),
             '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
             % (
-                moduleib["nAlloc event setup"]
-                + moduleib["nAlloc event"]
-                + moduleib["nAlloc construction"],
-                modulepr["nAlloc event setup"]
-                + modulepr["nAlloc event"]
-                + modulepr["nAlloc construction"],
-                moduleres["nAlloc event setup diff"]
-                + moduleres["nAlloc event diff"]
-                + moduleres["nAlloc construction diff"],
+                moduleib.get("nAlloc event setup", float("nan")),
+                modulepr.get("nAlloc event setup", float("nan")),
+                moduleres.get("nAlloc event setup diff", float("nan")),
             ),
-            "<td>%i<br>%i<br>%i</td>"
-            % (moduleib["transitions"], modulepr["transitions"], moduleres["transitions"]),
+            '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
+            % (
+                moduleib.get("nAlloc event setup", float("nan"))
+                + moduleib.get("nAlloc event", float("nan"))
+                + moduleib.get("nAlloc construction", float("nan")),
+                modulepr.get("nAlloc event setup", float("nan"))
+                + modulepr.get("nAlloc event", float("nan"))
+                + modulepr.get("nAlloc construction", float("nan")),
+                moduleres.get("nAlloc event setup diff", float("nan"))
+                + moduleres.get("nAlloc event diff", float("nan"))
+                + moduleres.get("nAlloc construction diff", float("nan")),
+            ),
+            '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
+             % ( moduleib.get("transitions", float("nan")), modulepr.get("transitions", float("nan")), moduleres.get("transitions diff", float("nan"))),
             "</tr>",
         ]
 
