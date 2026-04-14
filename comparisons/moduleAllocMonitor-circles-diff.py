@@ -437,7 +437,8 @@ for item in sorted(
             % (
                 moduleib.get("transitions", float("nan")),
                 modulepr.get("transitions", float("nan")),
-                moduleres.get("transitions diff", float("nan")),
+                moduleib.get("transitions", float("nan"))
+                - modulepr.get("transitions", float("nan")),
             ),
             "</tr>",
         ]
