@@ -394,9 +394,12 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            '<td align="right">' + f'{added_construction_ib:{".2f" if isinstance(added_construction_ib, (float)) else ""}}'
-            + "<br>" + f'{added_construction_pr:{".2f" if isinstance(added_construction_pr, (float)) else ""}}'
-            + "<br>" + f'{added_construction_diff:{".2f" if isinstance(added_construction_diff, (float)) else ""}}'
+            '<td align="right">'
+            + f'{added_construction_ib:{".2f" if isinstance(added_construction_ib, (float)) else ""}}'
+            + "<br>"
+            + f'{added_construction_pr:{".2f" if isinstance(added_construction_pr, (float)) else ""}}'
+            + "<br>"
+            + f'{added_construction_diff:{".2f" if isinstance(added_construction_diff, (float)) else ""}}'
             + "</td>"
         ]
         added_begin_run_ib = (
@@ -428,9 +431,12 @@ for item in sorted(
         )
         summaryLines += [
             (
-                '<td align="right">' + f'{added_begin_run_ib:{".2f" if isinstance(added_begin_run_ib, (float)) else ""}}'
-                + "<br>" + f'{added_begin_run_pr:{".2f" if isinstance(added_begin_run_pr, (float)) else ""}}'
-                + "<br>" + f'{added_begin_run_diff:{".2f" if isinstance(added_begin_run_diff, (float)) else ""}}'
+                '<td align="right">'
+                + f'{added_begin_run_ib:{".2f" if isinstance(added_begin_run_ib, (float)) else ""}}'
+                + "<br>"
+                + f'{added_begin_run_pr:{".2f" if isinstance(added_begin_run_pr, (float)) else ""}}'
+                + "<br>"
+                + f'{added_begin_run_diff:{".2f" if isinstance(added_begin_run_diff, (float)) else ""}}'
                 + "</td>"
             )
         ]
@@ -471,9 +477,12 @@ for item in sorted(
         )
         summaryLines += [
             (
-                '<td align="right">' + f'{added_luminosity_block_ib:{".2f" if isinstance(added_luminosity_block_ib, (float)) else ""}}'
-                + "<br>" + f'{added_luminosity_block_pr:{".2f" if isinstance(added_luminosity_block_pr, (float)) else ""}}'
-                + "<br>" + f'{added_luminosity_block_diff:{".2f" if isinstance(added_luminosity_block_diff, (float)) else ""}}'
+                '<td align="right">'
+                + f'{added_luminosity_block_ib:{".2f" if isinstance(added_luminosity_block_ib, (float)) else ""}}'
+                + "<br>"
+                + f'{added_luminosity_block_pr:{".2f" if isinstance(added_luminosity_block_pr, (float)) else ""}}'
+                + "<br>"
+                + f'{added_luminosity_block_diff:{".2f" if isinstance(added_luminosity_block_diff, (float)) else ""}}'
                 + "</td>"
             )
         ]
@@ -494,9 +503,12 @@ for item in sorted(
         )
         summaryLines += [
             (
-                '<td align="right">' + f'{added_event_ib:{".2f" if isinstance(added_event_ib, (float)) else ""}}'
-                + "<br>" + f'{added_event_pr:{".2f" if isinstance(added_event_pr, (float)) else ""}}'
-                + "<br>" + f'{added_event_diff:{".2f" if isinstance(added_event_diff, (float)) else ""}}'
+                '<td align="right">'
+                + f'{added_event_ib:{".2f" if isinstance(added_event_ib, (float)) else ""}}'
+                + "<br>"
+                + f'{added_event_pr:{".2f" if isinstance(added_event_pr, (float)) else ""}}'
+                + "<br>"
+                + f'{added_event_diff:{".2f" if isinstance(added_event_diff, (float)) else ""}}'
                 + "</td>"
             )
         ]
@@ -517,9 +529,12 @@ for item in sorted(
         )
         summaryLines += [
             (
-                '<td align="right">' + f'{added_event_setup_ib:{".2f" if isinstance(added_event_setup_ib, (float)) else ""}}'
-                + "<br>" + f'{added_event_setup_pr:{".2f" if isinstance(added_event_setup_pr, (float)) else ""}}'
-                + "<br>" + f'{added_event_setup_diff:{".2f" if isinstance(added_event_setup_diff, (float)) else ""}}'
+                '<td align="right">'
+                + f'{added_event_setup_ib:{".2f" if isinstance(added_event_setup_ib, (float)) else ""}}'
+                + "<br>"
+                + f'{added_event_setup_pr:{".2f" if isinstance(added_event_setup_pr, (float)) else ""}}'
+                + "<br>"
+                + f'{added_event_setup_diff:{".2f" if isinstance(added_event_setup_diff, (float)) else ""}}'
                 + "</td>"
             )
         ]
@@ -594,10 +609,13 @@ for item in sorted(
         )
         summaryLines += [
             (
-                cellString + f"{added_total_ib:{'.2f' if isinstance(added_total_ib, (float)) else ''}}"
-                    + "<br>" + f"{added_total_pr:{'.2f' if isinstance(added_total_pr, (float)) else ''}}"
-                    + "<br>" + f"{added_total_diff:{'.2f' if isinstance(added_total_diff, (float)) else ''}}"
-                    + "</td>"
+                cellString
+                + f"{added_total_ib:{'.2f' if isinstance(added_total_ib, (float)) else ''}}"
+                + "<br>"
+                + f"{added_total_pr:{'.2f' if isinstance(added_total_pr, (float)) else ''}}"
+                + "<br>"
+                + f"{added_total_diff:{'.2f' if isinstance(added_total_diff, (float)) else ''}}"
+                + "</td>"
             )
         ]
         nAlloc_construction_ib = (
@@ -648,7 +666,8 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            '<td align="right">' + f'{nAlloc_begin_run_ib:{".2f" if isinstance(nAlloc_begin_run_ib, (float)) else ""}}'
+            '<td align="right">'
+            + f'{nAlloc_begin_run_ib:{".2f" if isinstance(nAlloc_begin_run_ib, (float)) else ""}}'
             + f'<br>{nAlloc_begin_run_pr:{".2f" if isinstance(nAlloc_begin_run_pr, (float)) else ""}}'
             + f'<br>{nAlloc_begin_run_diff:{".2f" if isinstance(nAlloc_begin_run_diff, (float)) else ""}}</td>'
         ]
@@ -692,7 +711,8 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            '<td align="right">' + f'{nAlloc_begin_luminosity_block_ib:{".2f" if isinstance(nAlloc_begin_luminosity_block_ib, (float)) else ""}}'
+            '<td align="right">'
+            + f'{nAlloc_begin_luminosity_block_ib:{".2f" if isinstance(nAlloc_begin_luminosity_block_ib, (float)) else ""}}'
             + f'<br>{nAlloc_begin_luminosity_block_pr:{".2f" if isinstance(nAlloc_begin_luminosity_block_pr, (float)) else ""}}'
             + f'<br>{nAlloc_begin_luminosity_block_diff:{".2f" if isinstance(nAlloc_begin_luminosity_block_diff, (float)) else ""}}</td>'
         ]
@@ -712,7 +732,8 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            '<td align="right">' + f'{nAlloc_event_ib:{".2f" if isinstance(nAlloc_event_ib, (float)) else ""}}'
+            '<td align="right">'
+            + f'{nAlloc_event_ib:{".2f" if isinstance(nAlloc_event_ib, (float)) else ""}}'
             + f'<br>{nAlloc_event_pr:{".2f" if isinstance(nAlloc_event_pr, (float)) else ""}}'
             + f'<br>{nAlloc_event_diff:{".2f" if isinstance(nAlloc_event_diff, (float)) else ""}}</td>'
         ]
@@ -732,7 +753,8 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            '<td align="right">' + f'{nAlloc_event_setup_ib:{".2f" if isinstance(nAlloc_event_setup_ib, (float)) else ""}}'
+            '<td align="right">'
+            + f'{nAlloc_event_setup_ib:{".2f" if isinstance(nAlloc_event_setup_ib, (float)) else ""}}'
             + f'<br>{nAlloc_event_setup_pr:{".2f" if isinstance(nAlloc_event_setup_pr, (float)) else ""}}'
             + f'<br>{nAlloc_event_setup_diff:{".2f" if isinstance(nAlloc_event_setup_diff, (float)) else ""}}</td>'
         ]
@@ -770,7 +792,8 @@ for item in sorted(
             else "N/A"
         )
         summaryLines += [
-            '<td align="right">' + f'{nAlloc_total_ib:{".2f" if isinstance(nAlloc_total_ib, (float)) else ""}}'
+            '<td align="right">'
+            + f'{nAlloc_total_ib:{".2f" if isinstance(nAlloc_total_ib, (float)) else ""}}'
             + f'<br>{nAlloc_total_pr:{".2f" if isinstance(nAlloc_total_pr, (float)) else ""}}'
             + f'<br>{nAlloc_total_diff:{".2f" if isinstance(nAlloc_total_diff, (float)) else ""}}</td>'
         ]
@@ -796,7 +819,8 @@ for item in sorted(
             ):
                 transitions_diff = 0 - transitions_ib
         summaryLines += [
-            '<td align="right">' + f'{transitions_ib:{".2f" if isinstance(transitions_ib, (float)) else ""}}'
+            '<td align="right">'
+            + f'{transitions_ib:{".2f" if isinstance(transitions_ib, (float)) else ""}}'
             + f'<br>{transitions_pr:{".2f" if isinstance(transitions_pr, (float)) else ""}}'
             + f'<br>{transitions_diff:{".2f" if isinstance(transitions_diff, (float)) else ""}}</td>'
         ]
