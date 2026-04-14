@@ -65,20 +65,6 @@ datamappr = {
     for module in prdata["modules"]
 }
 
-datacumulspr = {}
-for module in prdata["modules"]:
-    datacumul = datacumulspr.get(module["type"])
-    if datacumul:
-        datacumul["count"] += 1
-        for metric in metrics:
-            datacumul[metric] += module[metric]
-    else:
-        datacumul = {}
-        datacumul["count"] = 1
-        for metric in metrics:
-            datacumul[metric] = module[metric]
-        datacumulspr[module["type"]] = datacumul
-# print(datacumulspr)
 
 if ibdata["total"]["label"] != prdata["total"]["label"]:
     print("Warning: input files describe different process names")
@@ -295,7 +281,12 @@ for item in datamapres.items():
             + moduleres.get("added stream begin luminosity block diff", float("nan"))
         )
         moduleres["added total diff"] = added_total_diff
-dumpfile = os.path.dirname(sys.argv[2]) + "/diff-" + os.path.basename(sys.argv[2])
+dumpfile = (
+    os.path.dirname(os.path.realpath(sys.argv[2]))
+    + "/diff-"
+    + os.path.basename(os.path.realpath(sys.argv[2]))
+    + ".json"
+)
 with open(dumpfile, "w") as f:
     json.dump(results, f, indent=2)
 
@@ -454,11 +445,12 @@ for item in sorted(
 summaryLines += []
 summaryLines += ["</body></html>"]
 
-summaryFile = os.path.dirname(sys.argv[2]) + "/diff-" + os.path.basename(sys.argv[2]) + ".html"
+summaryFile = (
+    os.path.dirname(os.path.realpath(sys.argv[2]))
+    + "/diff-"
+    + os.path.basename(os.path.realpath(sys.argv[2]))
+    + ".html"
+)
 with open(summaryFile, "w") as g:
     for summaryLine in summaryLines:
         print(summaryLine, file=g)
-
-dumpfile = os.path.dirname(sys.argv[2]) + "/diff-" + os.path.basename(sys.argv[2])
-with open(dumpfile, "w") as f:
-    json.dump(results, f, indent=2)
