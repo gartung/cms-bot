@@ -7,30 +7,24 @@ import os
 threshold = 5000.0
 error_threshold = 20000.0
 
-ADDED_BEGIN_RUN_KEYS = ["added global begin run", "added stream begin run"]
-ADDED_BEGIN_LUMI_KEYS = [
-    "added global begin luminosity block",
-    "added stream begin luminosity block",
+BEGIN_RUN_KEYS = ["global begin run", "stream begin run"]
+BEGIN_LUMI_KEYS = [
+    "global begin luminosity block",
+    "stream begin luminosity block",
 ]
-ADDED_TOTAL_KEYS = [
-    "added construction",
-    "added event",
-    "added event setup",
-    *ADDED_BEGIN_RUN_KEYS,
-    *ADDED_BEGIN_LUMI_KEYS,
+CONSTRUCTION_KEYS = ["construction"]
+EVENT_KEYS = ["event"]
+EVENT_SETUP_KEYS = ["event setup"]
+TOTAL_KEYS = [
+    *CONSTRUCTION_KEYS,
+    *EVENT_KEYS,
+    *EVENT_SETUP_KEYS,
+    *BEGIN_LUMI_KEYS,
+    *BEGIN_RUN_KEYS,
+    *BEGIN_LUMI_KEYS,
 ]
-NALLOC_BEGIN_RUN_KEYS = ["nAlloc global begin run", "nAlloc stream begin run"]
-NALLOC_BEGIN_LUMI_KEYS = [
-    "nAlloc global begin luminosity block",
-    "nAlloc stream begin luminosity block",
-]
-NALLOC_TOTAL_KEYS = [
-    "nAlloc construction",
-    "nAlloc event",
-    "nAlloc event setup",
-    *NALLOC_BEGIN_RUN_KEYS,
-    *NALLOC_BEGIN_LUMI_KEYS,
-]
+
+METRICS_KEYS = ["added", "nAlloc", "nDealloc", "maxTemp", "max1Alloc"]
 
 
 def module_key(module):
@@ -47,9 +41,9 @@ def sum_numeric_values(data, keys, default="N/A"):
     return sum(values) if all(isinstance(value, (int, float)) for value in values) else default
 
 
-def sum_with_suffix(data, metric_keys, suffix, default="N/A"):
+def sum_with_prefix_suffix(data, metric_keys, prefix="added", suffix="", default="N/A"):
     return sum_numeric_values(
-        data, ["%s %s" % (metric, suffix) for metric in metric_keys], default
+        data, ["%s %s %s" % (prefix, metric, suffix) for metric in metric_keys], default
     )
 
 
@@ -97,9 +91,16 @@ def update_added_totals(datamapres):
         key = module_key(module)
         if not is_valid_module_key(key):
             continue
-        module["added total PR"] = sum_with_suffix(module, ADDED_TOTAL_KEYS, "PR")
-        module["added total IB"] = sum_with_suffix(module, ADDED_TOTAL_KEYS, "IB")
-        module["added total diff"] = sum_with_suffix(module, ADDED_TOTAL_KEYS, "diff")
+        for metric in METRICS_KEYS:
+            module[f"{metric} total PR"] = sum_with_prefix_suffix(
+                module, TOTAL_KEYS, prefix=metric, suffix="PR"
+            )
+            module[f"{metric} total IB"] = sum_with_prefix_suffix(
+                module, TOTAL_KEYS, prefix=metric, suffix="IB"
+            )
+            module[f"{metric} total diff"] = sum_with_prefix_suffix(
+                module, TOTAL_KEYS, prefix=metric, suffix="diff"
+            )
 
 
 def build_summary_header(ibdata, prdata, results):
@@ -206,109 +207,95 @@ def build_summary_header(ibdata, prdata, results):
         ),
         "</tr></table>",
         '<table><tr><td align="center">Module label<BR>Module type<BR>Module record</td>',
-        '<td align="center">added construction (kB)</td>',
-        '<td align="center">added begin run (kB)</td>',
-        '<td align="center">added begin luminosity block (kB)</td>',
-        '<td align="center">added event (kB)</td>',
-        '<td align="center">added event setup (kB)</td>',
-        '<td align="center">added total (kB)</td>',
+        '<td align="center">added construction</td>',
+        '<td align="center">added begin run</td>',
+        '<td align="center">added begin luminosity block</td>',
+        '<td align="center">added event</td>',
+        '<td align="center">added event setup</td>',
+        '<td align="center">added total</td>',
         '<td align="center">nAlloc construction</td>',
         '<td align="center">nAlloc begin run</td>',
         '<td align="center">nAlloc begin luminosity block</td>',
         '<td align="center">nAlloc event</td>',
         '<td align="center">nAlloc event setup</td>',
         '<td align="center">nAlloc total</td>',
+        '<td align="center">nDealloc construction</td>',
+        '<td align="center">nDealloc begin run</td>',
+        '<td align="center">nDealloc begin luminosity block</td>',
+        '<td align="center">nDealloc event</td>',
+        '<td align="center">nDealloc event setup</td>',
+        '<td align="center">nDealloc total</td>',
+        '<td align="center">maxTemp construction</td>',
+        '<td align="center">maxTemp begin run</td>',
+        '<td align="center">maxTemp begin luminosity block</td>',
+        '<td align="center">maxTemp event</td>',
+        '<td align="center">maxTemp event setup</td>',
+        '<td align="center">maxTemp total</td>',
+        '<td align="center">max1Alloc construction</td>',
+        '<td align="center">max1Alloc begin run</td>',
+        '<td align="center">max1Alloc begin luminosity block</td>',
+        '<td align="center">max1Alloc event</td>',
+        '<td align="center">max1Alloc event setup</td>',
+        '<td align="center">max1Alloc total</td>',
         '<td align="center">transitions</td>',
         "</tr>",
     ]
 
 
-def append_module_row(summary_lines, moduleib, modulepr, moduleres):
+def append_module_columns_prefix(summary_lines, moduleres, prefix):
     addedtotaldiff = numeric_value(moduleres, "added total diff", float("-inf"))
     color = added_total_color(addedtotaldiff)
     cell_attrs = 'align="right"'
     if color:
         cell_attrs += " " + color
 
+    append_triplet_cell(
+        summary_lines,
+        sum_with_prefix_suffix(moduleres, CONSTRUCTION_KEYS, prefix=prefix, suffix="IB"),
+        sum_with_prefix_suffix(moduleres, CONSTRUCTION_KEYS, prefix=prefix, suffix="PR"),
+        sum_with_prefix_suffix(moduleres, CONSTRUCTION_KEYS, prefix=prefix, suffix="diff"),
+    )
+    append_triplet_cell(
+        summary_lines,
+        sum_with_prefix_suffix(moduleres, BEGIN_RUN_KEYS, prefix=prefix, suffix="IB"),
+        sum_with_prefix_suffix(moduleres, BEGIN_RUN_KEYS, prefix=prefix, suffix="PR"),
+        sum_with_prefix_suffix(moduleres, BEGIN_RUN_KEYS, prefix=prefix, suffix="diff"),
+    )
+    append_triplet_cell(
+        summary_lines,
+        sum_with_prefix_suffix(moduleres, BEGIN_LUMI_KEYS, prefix=prefix, suffix="IB"),
+        sum_with_prefix_suffix(moduleres, BEGIN_LUMI_KEYS, prefix=prefix, suffix="PR"),
+        sum_with_prefix_suffix(moduleres, BEGIN_LUMI_KEYS, prefix=prefix, suffix="diff"),
+    )
+    append_triplet_cell(
+        summary_lines,
+        sum_with_prefix_suffix(moduleres, EVENT_KEYS, prefix=prefix, suffix="IB"),
+        sum_with_prefix_suffix(moduleres, EVENT_KEYS, prefix=prefix, suffix="PR"),
+        sum_with_prefix_suffix(moduleres, EVENT_KEYS, prefix=prefix, suffix="diff"),
+    )
+    append_triplet_cell(
+        summary_lines,
+        sum_with_prefix_suffix(moduleres, EVENT_SETUP_KEYS, prefix=prefix, suffix="IB"),
+        sum_with_prefix_suffix(moduleres, EVENT_SETUP_KEYS, prefix=prefix, suffix="PR"),
+        sum_with_prefix_suffix(moduleres, EVENT_SETUP_KEYS, prefix=prefix, suffix="diff"),
+    )
+    append_triplet_cell(
+        summary_lines,
+        sum_with_prefix_suffix(moduleres, TOTAL_KEYS, prefix=prefix, suffix="IB"),
+        sum_with_prefix_suffix(moduleres, TOTAL_KEYS, prefix=prefix, suffix="PR"),
+        sum_with_prefix_suffix(moduleres, TOTAL_KEYS, prefix=prefix, suffix="diff"),
+        attrs=cell_attrs,
+    )
+
+
+def append_module_rows(summary_lines, moduleib, modulepr, moduleres):
     summary_lines += [
         "<tr>",
         '<td align="center">%s<BR>%s<BR> %s</td>'
         % (moduleres.get("label", ""), moduleres.get("type", ""), moduleres.get("record", "")),
     ]
-    append_triplet_cell(
-        summary_lines,
-        numeric_value(moduleres, "added construction IB"),
-        numeric_value(moduleres, "added construction PR"),
-        numeric_value(moduleres, "added construction diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        sum_numeric_values(moduleib, ADDED_BEGIN_RUN_KEYS),
-        sum_numeric_values(modulepr, ADDED_BEGIN_RUN_KEYS),
-        sum_with_suffix(moduleres, ADDED_BEGIN_RUN_KEYS, "diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        sum_numeric_values(moduleib, ADDED_BEGIN_LUMI_KEYS),
-        sum_numeric_values(modulepr, ADDED_BEGIN_LUMI_KEYS),
-        sum_with_suffix(moduleres, ADDED_BEGIN_LUMI_KEYS, "diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        numeric_value(moduleib, "added event"),
-        numeric_value(modulepr, "added event"),
-        numeric_value(moduleres, "added event diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        numeric_value(moduleib, "added event setup"),
-        numeric_value(modulepr, "added event setup"),
-        numeric_value(moduleres, "added event setup diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        sum_numeric_values(moduleib, ADDED_TOTAL_KEYS),
-        sum_numeric_values(modulepr, ADDED_TOTAL_KEYS),
-        sum_with_suffix(moduleres, ADDED_TOTAL_KEYS, "diff"),
-        attrs=cell_attrs,
-    )
-
-    append_triplet_cell(
-        summary_lines,
-        numeric_value(moduleres, "nAlloc construction IB"),
-        numeric_value(moduleres, "nAlloc construction PR"),
-        numeric_value(moduleres, "nAlloc construction diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        sum_with_suffix(moduleres, NALLOC_BEGIN_RUN_KEYS, "IB"),
-        sum_with_suffix(moduleres, NALLOC_BEGIN_RUN_KEYS, "PR"),
-        sum_with_suffix(moduleres, NALLOC_BEGIN_RUN_KEYS, "diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        sum_with_suffix(moduleres, NALLOC_BEGIN_LUMI_KEYS, "IB"),
-        sum_with_suffix(moduleres, NALLOC_BEGIN_LUMI_KEYS, "PR"),
-        sum_with_suffix(moduleres, NALLOC_BEGIN_LUMI_KEYS, "diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        numeric_value(moduleres, "nAlloc event IB"),
-        numeric_value(moduleres, "nAlloc event PR"),
-        numeric_value(moduleres, "nAlloc event diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        numeric_value(moduleres, "nAlloc event setup IB"),
-        numeric_value(moduleres, "nAlloc event setup PR"),
-        numeric_value(moduleres, "nAlloc event setup diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        sum_with_suffix(moduleres, NALLOC_TOTAL_KEYS, "IB"),
-        sum_with_suffix(moduleres, NALLOC_TOTAL_KEYS, "PR"),
-        sum_with_suffix(moduleres, NALLOC_TOTAL_KEYS, "diff"),
-    )
+    for metric in METRICS_KEYS:
+        append_module_columns_prefix(summary_lines, moduleres, metric)
 
     transitions_ib = numeric_value(moduleib, "transitions")
     transitions_pr = numeric_value(modulepr, "transitions")
@@ -328,7 +315,7 @@ def append_sorted_module_rows(summary_lines, datamapib, datamappr, datamapres):
         moduleib = datamapib.get(key, {})
         modulepr = datamappr.get(key, {})
         moduleres = datamapres.get(key, {})
-        append_module_row(summary_lines, moduleib, modulepr, moduleres)
+        append_module_rows(summary_lines, moduleib, modulepr, moduleres)
 
 
 def build_summary_lines(ibdata, prdata, results, datamapib, datamappr, datamapres):
