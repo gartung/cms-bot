@@ -7,6 +7,7 @@ import os
 threshold = 5000.0
 error_threshold = 20000.0
 
+BEGIN_JOB_KEYS = ["begin job"]
 BEGIN_RUN_KEYS = ["global begin run", "stream begin run"]
 BEGIN_LUMI_KEYS = [
     "global begin luminosity block",
@@ -17,11 +18,10 @@ EVENT_KEYS = ["event"]
 EVENT_SETUP_KEYS = ["event setup"]
 TOTAL_KEYS = [
     *CONSTRUCTION_KEYS,
-    *EVENT_KEYS,
-    *EVENT_SETUP_KEYS,
-    *BEGIN_LUMI_KEYS,
     *BEGIN_RUN_KEYS,
     *BEGIN_LUMI_KEYS,
+    *EVENT_KEYS,
+    *EVENT_SETUP_KEYS,
 ]
 
 METRICS_KEYS = ["added", "nAlloc", "nDealloc", "maxTemp", "max1Alloc"]
@@ -103,8 +103,47 @@ def update_added_totals(datamapres):
             )
 
 
-def build_summary_header(ibdata, prdata, results):
+def build_header_row():
     return [
+        '<td align="center">added begin job</td>',
+        '<td align="center">added construction</td>',
+        '<td align="center">added begin run</td>',
+        '<td align="center">added begin luminosity block</td>',
+        '<td align="center">added event</td>',
+        '<td align="center">added event setup</td>',
+        '<td align="center">added total</td>',
+        '<td align="center">nAlloc begin job</td>',
+        '<td align="center">nAlloc construction</td>',
+        '<td align="center">nAlloc begin run</td>',
+        '<td align="center">nAlloc begin luminosity block</td>',
+        '<td align="center">nAlloc event</td>',
+        '<td align="center">nAlloc event setup</td>',
+        '<td align="center">nAlloc total</td>',
+        '<td align="center">nDealloc begin job</td>',
+        '<td align="center">nDealloc construction</td>',
+        '<td align="center">nDealloc begin run</td>',
+        '<td align="center">nDealloc begin luminosity block</td>',
+        '<td align="center">nDealloc event</td>',
+        '<td align="center">nDealloc event setup</td>',
+        '<td align="center">nDealloc total</td>',
+        '<td align="center">maxTemp begin job</td>',
+        '<td align="center">maxTemp construction</td>',
+        '<td align="center">maxTemp begin run</td>',
+        '<td align="center">maxTemp begin luminosity block</td>',
+        '<td align="center">maxTemp event</td>',
+        '<td align="center">maxTemp event setup</td>',
+        '<td align="center">maxTemp total</td>',
+        '<td align="center">max1Alloc begin job</td>',
+        '<td align="center">max1Alloc construction</td>',
+        '<td align="center">max1Alloc begin run</td>',
+        '<td align="center">max1Alloc begin luminosity block</td>',
+        '<td align="center">max1Alloc event</td>',
+        '<td align="center">max1Alloc event setup</td>',
+        '<td align="center">max1Alloc total</td>',
+    ]
+
+def build_summary_header(ibdata, prdata, results):
+    summary_header = [
         "<html>",
         "<head><style>",
         "table, th, td {border: 1px solid black;}</style>",
@@ -123,123 +162,66 @@ def build_summary_header(ibdata, prdata, results):
         "</tr></table>",
         "<table>",
         '<tr><td align="center">Type<BR>Label</td>',
-        '<td align="center">added construction</td>',
-        '<td align="center">added begin run</td>',
-        '<td align="center">added begin luminosity block</td>',
-        '<td align="center">added event</td>',
-        '<td align="center">added event setup</td>',
-        '<td align="center">nAlloc construction</td>',
-        '<td align="center">nAlloc begin run</td>',
-        '<td align="center">nAlloc begin luminosity block</td>',
-        '<td align="center">nAlloc event</td>',
-        '<td align="center">nAlloc event setup</td>',
+    ]
+    summary_header += build_header_row()
+    summary_header += [
         "</tr>",
+        "<tr>",
         "<td>%s<BR>%s</td>" % (prdata["total"]["type"], prdata["total"]["label"]),
-        '<td align="right">%0.2f<br>%0.2f<br>%0.2f</td>'
-        % (
-            ibdata["total"]["added construction"],
-            prdata["total"]["added construction"],
-            results["total"]["added construction diff"],
-        ),
-        '<td align="right">%0.2f<br>%0.2f<br>%0.2f</td>'
-        % (
-            ibdata["total"]["added global begin run"] + ibdata["total"]["added stream begin run"],
-            prdata["total"]["added global begin run"] + prdata["total"]["added stream begin run"],
-            results["total"]["added global begin run diff"]
-            + results["total"]["added stream begin run diff"],
-        ),
-        '<td align="right">%0.2f<br>%0.2f<br>%0.2f</td>'
-        % (
-            ibdata["total"]["added global begin luminosity block"]
-            + ibdata["total"]["added stream begin luminosity block"],
-            prdata["total"]["added global begin luminosity block"]
-            + prdata["total"]["added stream begin luminosity block"],
-            results["total"]["added global begin luminosity block diff"]
-            + results["total"]["added stream begin luminosity block diff"],
-        ),
-        '<td align="right">%0.2f<br>%0.2f<br>%0.2f</td>'
-        % (
-            ibdata["total"]["added event"],
-            prdata["total"]["added event"],
-            results["total"]["added event diff"],
-        ),
-        '<td align="right">%0.2f<br>%0.2f<br>%0.2f</td>'
-        % (
-            ibdata["total"]["added event setup"],
-            prdata["total"]["added event setup"],
-            results["total"]["added event setup diff"],
-        ),
-        '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-        % (
-            ibdata["total"]["nAlloc construction"],
-            prdata["total"]["nAlloc construction"],
-            results["total"]["nAlloc construction diff"],
-        ),
-        '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-        % (
-            ibdata["total"]["nAlloc global begin run"]
-            + ibdata["total"]["nAlloc stream begin run"],
-            prdata["total"]["nAlloc global begin run"]
-            + prdata["total"]["nAlloc stream begin run"],
-            results["total"]["nAlloc global begin run diff"]
-            + results["total"]["nAlloc stream begin run diff"],
-        ),
-        '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-        % (
-            ibdata["total"]["nAlloc global begin luminosity block"]
-            + ibdata["total"]["nAlloc stream begin luminosity block"],
-            prdata["total"]["nAlloc global begin luminosity block"]
-            + prdata["total"]["nAlloc stream begin luminosity block"],
-            results["total"]["nAlloc global begin luminosity block diff"]
-            + results["total"]["nAlloc stream begin luminosity block diff"],
-        ),
-        '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-        % (
-            ibdata["total"]["nAlloc event"],
-            prdata["total"]["nAlloc event"],
-            results["total"]["nAlloc event diff"],
-        ),
-        '<td align="right">%0.f<br>%0.f<br>%0.f</td>'
-        % (
-            ibdata["total"]["nAlloc event setup"],
-            prdata["total"]["nAlloc event setup"],
-            results["total"]["nAlloc event setup diff"],
-        ),
+    ]
+    for metric in METRICS_KEYS:
+        append_triplet_cell(
+        summary_header,
+        sum_numeric_values(results["total"], ['%s %s IB' % (metric , key) for key in BEGIN_JOB_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s PR' % (metric , key) for key in BEGIN_JOB_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in BEGIN_JOB_KEYS]),
+        )
+        append_triplet_cell(
+        summary_header,
+        sum_numeric_values(results["total"], ['%s %s IB' % (metric , key) for key in CONSTRUCTION_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s PR' % (metric , key) for key in CONSTRUCTION_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in CONSTRUCTION_KEYS]),
+        )
+        append_triplet_cell(
+        summary_header,
+        sum_numeric_values(results["total"], ['%s %s IB' % (metric, key) for key in BEGIN_RUN_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s PR' % (metric, key) for key in BEGIN_RUN_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in BEGIN_RUN_KEYS]),
+        )
+        append_triplet_cell(
+        summary_header,
+        sum_numeric_values(results["total"], ['%s %s IB' % (metric, key) for key in BEGIN_LUMI_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s PR' % (metric, key) for key in BEGIN_LUMI_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in BEGIN_LUMI_KEYS]),
+        )
+        append_triplet_cell(
+        summary_header,
+        sum_numeric_values(results["total"], ['%s %s IB' % (metric, key) for key in EVENT_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s PR' % (metric, key) for key in EVENT_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in EVENT_KEYS]),
+        )
+        append_triplet_cell(
+        summary_header,
+        sum_numeric_values(results["total"], ['%s %s IB' % (metric, key) for key in EVENT_SETUP_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s PR' % (metric, key) for key in EVENT_SETUP_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in EVENT_SETUP_KEYS]),
+        )
+        append_triplet_cell(
+        summary_header,
+        sum_numeric_values(results["total"], ['%s %s IB' % (metric, key) for key in TOTAL_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s PR' % (metric, key) for key in TOTAL_KEYS]),
+        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in TOTAL_KEYS]),
+        )
+    summary_header += [
         "</tr></table>",
-        '<table><tr><td align="center">Module label<BR>Module type<BR>Module record</td>',
-        '<td align="center">added construction</td>',
-        '<td align="center">added begin run</td>',
-        '<td align="center">added begin luminosity block</td>',
-        '<td align="center">added event</td>',
-        '<td align="center">added event setup</td>',
-        '<td align="center">added total</td>',
-        '<td align="center">nAlloc construction</td>',
-        '<td align="center">nAlloc begin run</td>',
-        '<td align="center">nAlloc begin luminosity block</td>',
-        '<td align="center">nAlloc event</td>',
-        '<td align="center">nAlloc event setup</td>',
-        '<td align="center">nAlloc total</td>',
-        '<td align="center">nDealloc construction</td>',
-        '<td align="center">nDealloc begin run</td>',
-        '<td align="center">nDealloc begin luminosity block</td>',
-        '<td align="center">nDealloc event</td>',
-        '<td align="center">nDealloc event setup</td>',
-        '<td align="center">nDealloc total</td>',
-        '<td align="center">maxTemp construction</td>',
-        '<td align="center">maxTemp begin run</td>',
-        '<td align="center">maxTemp begin luminosity block</td>',
-        '<td align="center">maxTemp event</td>',
-        '<td align="center">maxTemp event setup</td>',
-        '<td align="center">maxTemp total</td>',
-        '<td align="center">max1Alloc construction</td>',
-        '<td align="center">max1Alloc begin run</td>',
-        '<td align="center">max1Alloc begin luminosity block</td>',
-        '<td align="center">max1Alloc event</td>',
-        '<td align="center">max1Alloc event setup</td>',
-        '<td align="center">max1Alloc total</td>',
+        '<table style="width: 100%"><tr><td align="center">Module label<BR>Module type<BR>Module record</td>',
+    ]
+    summary_header += build_header_row()
+    summary_header += [
         '<td align="center">transitions</td>',
         "</tr>",
     ]
+    return summary_header
 
 
 def append_module_columns_prefix(summary_lines, moduleres, prefix):
@@ -248,7 +230,12 @@ def append_module_columns_prefix(summary_lines, moduleres, prefix):
     cell_attrs = 'align="right"'
     if color:
         cell_attrs += " " + color
-
+    append_triplet_cell(
+        summary_lines,
+        sum_with_prefix_suffix(moduleres, BEGIN_JOB_KEYS, prefix=prefix, suffix="IB"),
+        sum_with_prefix_suffix(moduleres, BEGIN_JOB_KEYS, prefix=prefix, suffix="PR"),
+        sum_with_prefix_suffix(moduleres, BEGIN_JOB_KEYS, prefix=prefix, suffix="diff"),
+    )
     append_triplet_cell(
         summary_lines,
         sum_with_prefix_suffix(moduleres, CONSTRUCTION_KEYS, prefix=prefix, suffix="IB"),
@@ -296,12 +283,11 @@ def append_module_rows(summary_lines, moduleib, modulepr, moduleres):
     ]
     for metric in METRICS_KEYS:
         append_module_columns_prefix(summary_lines, moduleres, metric)
-
     transitions_ib = numeric_value(moduleib, "transitions")
     transitions_pr = numeric_value(modulepr, "transitions")
     transitions_diff = transitions_diff_value(transitions_ib, transitions_pr)
     append_triplet_cell(summary_lines, transitions_ib, transitions_pr, transitions_diff)
-
+    summary_lines += ["</tr>"]
 
 def append_sorted_module_rows(summary_lines, datamapib, datamappr, datamapres):
     for item in sorted(
@@ -441,7 +427,6 @@ dumpfile = (
     os.path.dirname(os.path.realpath(sys.argv[2]))
     + "/diff-"
     + os.path.basename(os.path.realpath(sys.argv[2]))
-    + ".json"
 )
 with open(dumpfile, "w") as f:
     json.dump(results, f, indent=2)
