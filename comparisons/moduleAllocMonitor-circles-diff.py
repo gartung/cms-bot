@@ -142,6 +142,7 @@ def build_header_row():
         '<td align="center">max1Alloc total</td>',
     ]
 
+
 def build_summary_header(ibdata, prdata, results):
     summary_header = [
         "<html>",
@@ -171,46 +172,88 @@ def build_summary_header(ibdata, prdata, results):
     ]
     for metric in METRICS_KEYS:
         append_triplet_cell(
-        summary_header,
-        sum_numeric_values(results["total"], ['%s %s IB' % (metric , key) for key in BEGIN_JOB_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s PR' % (metric , key) for key in BEGIN_JOB_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in BEGIN_JOB_KEYS]),
+            summary_header,
+            sum_numeric_values(
+                results["total"], ["%s %s IB" % (metric, key) for key in BEGIN_JOB_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s PR" % (metric, key) for key in BEGIN_JOB_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s diff" % (metric, key) for key in BEGIN_JOB_KEYS]
+            ),
         )
         append_triplet_cell(
-        summary_header,
-        sum_numeric_values(results["total"], ['%s %s IB' % (metric , key) for key in CONSTRUCTION_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s PR' % (metric , key) for key in CONSTRUCTION_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in CONSTRUCTION_KEYS]),
+            summary_header,
+            sum_numeric_values(
+                results["total"], ["%s %s IB" % (metric, key) for key in CONSTRUCTION_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s PR" % (metric, key) for key in CONSTRUCTION_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s diff" % (metric, key) for key in CONSTRUCTION_KEYS]
+            ),
         )
         append_triplet_cell(
-        summary_header,
-        sum_numeric_values(results["total"], ['%s %s IB' % (metric, key) for key in BEGIN_RUN_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s PR' % (metric, key) for key in BEGIN_RUN_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in BEGIN_RUN_KEYS]),
+            summary_header,
+            sum_numeric_values(
+                results["total"], ["%s %s IB" % (metric, key) for key in BEGIN_RUN_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s PR" % (metric, key) for key in BEGIN_RUN_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s diff" % (metric, key) for key in BEGIN_RUN_KEYS]
+            ),
         )
         append_triplet_cell(
-        summary_header,
-        sum_numeric_values(results["total"], ['%s %s IB' % (metric, key) for key in BEGIN_LUMI_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s PR' % (metric, key) for key in BEGIN_LUMI_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in BEGIN_LUMI_KEYS]),
+            summary_header,
+            sum_numeric_values(
+                results["total"], ["%s %s IB" % (metric, key) for key in BEGIN_LUMI_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s PR" % (metric, key) for key in BEGIN_LUMI_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s diff" % (metric, key) for key in BEGIN_LUMI_KEYS]
+            ),
         )
         append_triplet_cell(
-        summary_header,
-        sum_numeric_values(results["total"], ['%s %s IB' % (metric, key) for key in EVENT_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s PR' % (metric, key) for key in EVENT_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in EVENT_KEYS]),
+            summary_header,
+            sum_numeric_values(
+                results["total"], ["%s %s IB" % (metric, key) for key in EVENT_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s PR" % (metric, key) for key in EVENT_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s diff" % (metric, key) for key in EVENT_KEYS]
+            ),
         )
         append_triplet_cell(
-        summary_header,
-        sum_numeric_values(results["total"], ['%s %s IB' % (metric, key) for key in EVENT_SETUP_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s PR' % (metric, key) for key in EVENT_SETUP_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in EVENT_SETUP_KEYS]),
+            summary_header,
+            sum_numeric_values(
+                results["total"], ["%s %s IB" % (metric, key) for key in EVENT_SETUP_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s PR" % (metric, key) for key in EVENT_SETUP_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s diff" % (metric, key) for key in EVENT_SETUP_KEYS]
+            ),
         )
         append_triplet_cell(
-        summary_header,
-        sum_numeric_values(results["total"], ['%s %s IB' % (metric, key) for key in TOTAL_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s PR' % (metric, key) for key in TOTAL_KEYS]),
-        sum_numeric_values(results["total"], ['%s %s diff' % (metric, key) for key in TOTAL_KEYS]),
+            summary_header,
+            sum_numeric_values(
+                results["total"], ["%s %s IB" % (metric, key) for key in TOTAL_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s PR" % (metric, key) for key in TOTAL_KEYS]
+            ),
+            sum_numeric_values(
+                results["total"], ["%s %s diff" % (metric, key) for key in TOTAL_KEYS]
+            ),
         )
     summary_header += [
         "</tr></table>",
@@ -288,6 +331,7 @@ def append_module_rows(summary_lines, moduleib, modulepr, moduleres):
     transitions_diff = transitions_diff_value(transitions_ib, transitions_pr)
     append_triplet_cell(summary_lines, transitions_ib, transitions_pr, transitions_diff)
     summary_lines += ["</tr>"]
+
 
 def append_sorted_module_rows(summary_lines, datamapib, datamappr, datamapres):
     for item in sorted(
