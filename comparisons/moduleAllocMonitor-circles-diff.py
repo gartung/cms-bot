@@ -268,11 +268,12 @@ def build_summary_header(ibdata, prdata, results):
 
 
 def append_module_columns_prefix(summary_lines, moduleres, prefix):
-    addedtotaldiff = numeric_value(moduleres, "added total diff", float("-inf"))
-    color = added_total_color(addedtotaldiff)
     cell_attrs = 'align="right"'
-    if color:
-        cell_attrs += " " + color
+    if prefix == "added":
+        addedtotaldiff = numeric_value(moduleres, "added total diff", float("-inf"))
+        color = added_total_color(addedtotaldiff)
+        if color:
+            cell_attrs += " " + color
     append_triplet_cell(
         summary_lines,
         sum_with_prefix_suffix(moduleres, BEGIN_JOB_KEYS, prefix=prefix, suffix="IB"),
