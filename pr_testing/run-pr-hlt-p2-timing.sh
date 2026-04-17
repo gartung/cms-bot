@@ -17,9 +17,7 @@ rm -rf $WORKSPACE/rundir/__pycache__
 
 pushd $WORKSPACE/rundir
   export LOCALRT=${WORKSPACE}/${CMSSW_VERSION}
-  git clone https://github.com/cms-externals/patatrack-scripts -b fix-imp --depth 1
   timeout $TIMEOUT bash -ex ${HLT_BASEDIR}/${HLT_P2_SCRIPT}/runHLTTiming.sh 2>&1 | tee -a ${WORKSPACE}/hlt-p2-timing.log
-  rm -rf patatrack-scripts
 popd
 
 # Upload results
