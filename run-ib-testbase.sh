@@ -36,7 +36,7 @@ if [ ! -d ${CMSSW_BASE}/lib/${ARCHITECTURE} ] ; then
     if [ $(date +%w) -lt 2 ] ; then
       xDIR=\$(ls -d /cvmfs/cms-ib.cern.ch/sw/\${UNAME}/nweek-* | tail -2 | head -1)
       if [ -d "\${CMS_SW_INSTALL_DIR}/share/etc/default-scram" ] ; then
-        CMS_SW_INSTALL_DIR="\${xDir}"
+        CMS_SW_INSTALL_DIR="\${xDIR}"
       fi
     fi
   fi
