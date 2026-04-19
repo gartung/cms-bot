@@ -31,11 +31,13 @@ if [ ! -d ${CMSSW_BASE}/lib/${ARCHITECTURE} ] ; then
   UNAME=$(echo ${ARCHITECTURE} | cut -d_ -f2)
   [ "\${UNAME}" != "amd64" ] || UNAME="x86_64"
   if [ "\${CMS_SW_INSTALL_DIR}" = "" ] ; then
+    CMS_SW_INSTALL_DIR=\$(ls -d /cvmfs/cms-ib.cern.ch/sw/\${UNAME}/nweek-* | tail -1)
     #Use previous WEEK for env if week day is Sunday(0)  or Monday(1) otherwise use current week
     if [ $(date +%w) -lt 2 ] ; then
-      CMS_SW_INSTALL_DIR=\$(ls -d /cvmfs/cms-ib.cern.ch/sw/\${UNAME}/nweek-* | tail -2 | head -1)
-    else
-      CMS_SW_INSTALL_DIR=\$(ls -d /cvmfs/cms-ib.cern.ch/sw/\${UNAME}/nweek-* | tail -1)
+      xDIR=\$(ls -d /cvmfs/cms-ib.cern.ch/sw/\${UNAME}/nweek-* | tail -2 | head -1)
+      if [ -d "\${CMS_SW_INSTALL_DIR}/share/etc/default-scram" ] ; then
+        CMS_SW_INSTALL_DIR="\${xDir}"
+      fi
     fi
   fi
   source \${CMS_SW_INSTALL_DIR}/cmsset_default.sh  || true
