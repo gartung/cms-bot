@@ -809,6 +809,10 @@ def fill_missing_cmsdist_tags(results):
     for rq in results:
         previous_cmsdist_tags = {}
         for comp in rq["comparisons"]:
+            if "release_name" in comp:
+                print("Working on cmsdist tag for ", comp["release_name"])
+            else:
+                print("Working on cmsdist tag for ", comp)
             for arch in comp["tests_archs"]:
                 current_ib_tag_arch = comp["cmsdistTags"].get(arch)
                 if current_ib_tag_arch:
