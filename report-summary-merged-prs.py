@@ -798,7 +798,7 @@ def print_results(results):
             print("\t" + "inProgress: " + str(comp.get("inProgress")))
 
 
-def fill_missing_cmsdist_tags(results):
+def fill_missing_cmsdist_tags(results, all_cmsdist_tags):
     """
     Iterates over the IBs comparisons, if an IB doesn't have a tag for an architecture, the previous tag is
     assigned. For example, for arch slc6_amd64_gcc481
@@ -806,6 +806,7 @@ def fill_missing_cmsdist_tags(results):
     2. There is no tag for CMSSW_7_1_X_2014-10-03-0200 in cmsdist
     Then, it assumes that the tag used for CMSSW_7_1_X_2014-10-03-0200 was IB/CMSSW_7_1_X_2014-10-02-1500/slc6_amd64_gcc481
     """
+    print("ALL Tags:", all_cmsdist_tags)
     for rq in results:
         previous_cmsdist_tags = {}
         for comp in rq["comparisons"]:
@@ -814,10 +815,10 @@ def fill_missing_cmsdist_tags(results):
                 if current_ib_tag_arch:
                     previous_cmsdist_tags[arch] = current_ib_tag_arch
                 else:
-                    if previous_cmsdist_tags.get(arch):
-                        comp["cmsdistTags"][arch] = previous_cmsdist_tags[arch]
-                    else:
-                        comp["cmsdistTags"][arch] = "Not Found"
+                    prev_tag = previous_cmsdist_tags.get(arch, "")
+                    if not prev_tag:
+                        prev_tag = "Not Found"
+                    comp["cmsdistTags"][arch] = prev_tag
 
 
 def get_cmsdist_merge_commits(results):
@@ -2022,13 +2023,14 @@ if __name__ == "__main__":
         )
         results.append(release_queue_results)
 
+    all_cmsdist_tags = execute_magic_command_get_cmsdist_tags()
     add_tests_to_results(
         results,
         execute_magic_command_find_results("utests"),
         execute_magic_command_find_results("relvals"),
         execute_magic_command_find_results("addOn"),
         execute_magic_command_find_results("builds"),
-        execute_magic_command_get_cmsdist_tags(),
+        all_cmsdist_tags,
         execute_magic_command_find_rv_exceptions_results(),  # rv_Exceptions_Results
         execute_magic_command_find_results("fwlite"),
         execute_magic_command_find_results("python3"),
@@ -2054,7 +2056,7 @@ if __name__ == "__main__":
         find_dup_dict_result(release_queue_results["comparisons"])
         find_ubsan_logs(release_queue_results["comparisons"], ubsan_data)
 
-    fill_missing_cmsdist_tags(results)
+    fill_missing_cmsdist_tags(results, all_cmsdist_tags)
     get_cmsdist_merge_commits(results)
     print_results(results)
 
