@@ -833,7 +833,7 @@ def fill_missing_cmsdist_tags(results, all_cmsdist_tags):
                         que = ""
                         if "_X_" in ver:
                             que = ver.split("_X_")[0] + "_X"
-                        print("  Checking cmsdist for ", arch, que, ver)
+                        print("Checking cmsdist for ", arch, que, ver)
                         if que and (que in all_tags):
                             for v in all_tags[que]:
                                 if v > ver:
