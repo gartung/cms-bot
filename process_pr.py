@@ -1267,7 +1267,7 @@ def process_pr(
     is_draft_pr = False
     build_comment = None
 
-    # Retrigger the job if PR is for cms-bot repo and author is core or externals l2
+    # Retrigger the job if PR is for cms-bot repo and author is heterogeneous, core or externals l2
     if (
         repo.full_name == "cms-sw/cms-bot"
         and os.getenv("CMS_BOT_TEST_BRANCH", "master") == "master"
@@ -1275,7 +1275,7 @@ def process_pr(
     ):
         author_ = issue.user.login
         cats = get_commenter_categories(author_, int(issue.created_at.strftime("%s")))
-        if "externals" in cats or "core" in cats:
+        if "externals" in cats or "core" in cats or "heterogeneous" in cats:
             logger.info("Testing cms-bot PR #{0}".format(issue.number))
             with open("cms-bot.properties", "w") as f:
                 f.write("CMS_BOT_TEST_BRANCH=pull/{0}/head\n".format(issue.number))
