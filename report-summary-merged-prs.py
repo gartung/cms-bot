@@ -807,6 +807,17 @@ def fill_missing_cmsdist_tags(results, all_cmsdist_tags):
     Then, it assumes that the tag used for CMSSW_7_1_X_2014-10-03-0200 was IB/CMSSW_7_1_X_2014-10-02-1500/slc6_amd64_gcc481
     """
     print("ALL Tags:", all_cmsdist_tags)
+    all_tags = {}
+    for ver in all_cmsdist_tags:
+        if not "_X_" in ver:
+            continue
+        que = ver.split("_X_")[0] + "_X"
+        if not que in all_tags:
+            all_tags[que] = []
+        all_tags[que].append(ver)
+    for que in list(all_tags.keys()):
+        all_tags[que].sort()
+    print("ALL CMSDIST Tags:", all_tags)
     for rq in results:
         previous_cmsdist_tags = {}
         for comp in rq["comparisons"]:
@@ -818,6 +829,19 @@ def fill_missing_cmsdist_tags(results, all_cmsdist_tags):
                     prev_tag = previous_cmsdist_tags.get(arch, "")
                     if not prev_tag:
                         prev_tag = "Not Found"
+                        ver = comp.get("release_name", "")
+                        que = ""
+                        if "_X_" in ver:
+                            que = ver.split("_X_")[0] + "_X"
+                        print("  Checking cmsdist for ", arch, que, ver)
+                        if que and (que in all_tags):
+                            for v in all_tags[que]:
+                                if v > ver:
+                                    break
+                                elif arch in all_cmsdist_tags[v]:
+                                    prev_tag = all_cmsdist_tags[v][arch]
+                                    print("  Possible tag", prev_tag)
+                    print("Previous tag to use ", prev_tag)
                     comp["cmsdistTags"][arch] = prev_tag
 
 
