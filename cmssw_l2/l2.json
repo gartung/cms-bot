@@ -1599,6 +1599,14 @@
       "start_date": 1632787200
     }
   ],
+  "kfjack": [
+    {
+      "category": [
+        "pdmv"
+      ],
+      "start_date": 1776643200
+    }
+  ],
   "kirschen": [
     {
       "category": [
@@ -2655,6 +2663,12 @@
       ],
       "end_date": 1736208000,
       "start_date": 1662422400
+    },
+    {
+      "category": [
+        "pdmv"
+      ],
+      "start_date": 1776643200
     }
   ],
   "sscruz": [
