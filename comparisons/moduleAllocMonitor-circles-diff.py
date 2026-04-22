@@ -4,8 +4,28 @@ import sys
 import json
 import os
 
-threshold = 5000.0
-error_threshold = 20000.0
+
+def build_viewer_html(template_path, embedded_data, source_label):
+    with open(template_path, encoding="utf-8") as template_file:
+        content = template_file.read()
+
+    embedded_json = json.dumps(embedded_data).replace("</", "<\\/")
+
+    autoload_snippet = """
+    <script>
+        (function () {
+            var embeddedData = %s;
+            if (typeof loadFromObject === "function") {
+                loadFromObject(embeddedData, %s);
+            }
+        })();
+    </script>
+""" % (embedded_json, json.dumps(source_label))
+
+    if "</body>" in content:
+        content = content.replace("</body>", autoload_snippet + "</body>", 1)
+    return content
+
 
 BEGIN_JOB_KEYS = ["begin job"]
 BEGIN_RUN_KEYS = ["global begin run", "stream begin run"]
@@ -28,17 +48,33 @@ METRICS_KEYS = ["added", "nAlloc", "nDealloc", "maxTemp", "max1Alloc"]
 
 
 def module_key(module):
-    return "%s|%s|%s" % (module.get("label", ""), module.get("type", ""), module.get("record", ""))
+    return "%s|%s" % (module.get("label", ""), module.get("type", ""))
 
 
-def numeric_value(data, key, default="N/A"):
-    value = data.get(key, default)
-    return value if isinstance(value, (int, float)) else default
+def module_record(module):
+    record = module.get("record", "")
+    return str(record).strip()
+
+
+def is_event_setup_metric(metric):
+    return str(metric).strip().lower().endswith(" event setup")
+
+
+def to_numeric_or_none(value):
+    if isinstance(value, (int, float)):
+        return value
+    if isinstance(value, dict):
+        total_value = value.get("total")
+        if isinstance(total_value, (int, float)):
+            return total_value
+        values = [sub_value for sub_value in value.values() if isinstance(sub_value, (int, float))]
+        return sum(values) if values else None
+    return None
 
 
 def sum_numeric_values(data, keys, default="N/A"):
-    values = [data.get(key, default) for key in keys]
-    return sum(values) if all(isinstance(value, (int, float)) for value in values) else default
+    values = [to_numeric_or_none(data.get(key, default)) for key in keys]
+    return sum(values) if all(value is not None for value in values) else default
 
 
 def sum_with_prefix_suffix(data, metric_keys, prefix="added", suffix="", default="N/A"):
@@ -47,43 +83,34 @@ def sum_with_prefix_suffix(data, metric_keys, prefix="added", suffix="", default
     )
 
 
-def format_metric(value):
-    return f"{value:.2f}" if isinstance(value, float) else str(value)
-
-
-def append_triplet_cell(summary_lines, ib, pr, diff, attrs='align="right"'):
-    summary_lines.append(
-        "<td %s>%s<br>%s<br>%s</td>"
-        % (attrs, format_metric(ib), format_metric(pr), format_metric(diff))
-    )
-
-
-def added_total_color(diff_value):
-    if not isinstance(diff_value, (int, float)):
-        return ""
-    if diff_value > error_threshold:
-        return 'bgcolor="red"'
-    if diff_value > threshold:
-        return 'bgcolor="orange"'
-    if diff_value < -1.0 * error_threshold:
-        return 'bgcolor="green"'
-    if diff_value < -1.0 * threshold:
-        return 'bgcolor="cyan"'
-    return ""
-
-
 def is_valid_module_key(key):
     return key != "None|None|None" and key != "||"
 
 
-def transitions_diff_value(transitions_ib, transitions_pr):
-    if isinstance(transitions_ib, (int, float)) and isinstance(transitions_pr, (int, float)):
-        return transitions_ib - transitions_pr
-    if not isinstance(transitions_ib, (int, float)) and isinstance(transitions_pr, (int, float)):
-        return transitions_pr - 0
-    if isinstance(transitions_ib, (int, float)) and not isinstance(transitions_pr, (int, float)):
-        return 0 - transitions_ib
-    return "N/A"
+def compute_event_setup_total(event_setup):
+    total = 0
+    if not isinstance(event_setup, dict):
+        return total
+    for key, value in event_setup.items():
+        if key == "total":
+            continue
+        if isinstance(value, (int, float)):
+            total += value
+        elif isinstance(value, dict):
+            for nested in value.values():
+                if isinstance(nested, (int, float)):
+                    total += nested
+    return total
+
+
+def ensure_event_setup_total(module):
+    for key in ["IB", "PR", "diff"]:
+        for metric in METRICS_KEYS:
+            event_setup = module.get("%s event setup %s" % (metric, key))
+            if not isinstance(event_setup, dict):
+                event_setup = {"total": 0}
+            event_setup["total"] = compute_event_setup_total(event_setup)
+            module["%s event setup %s" % (metric, key)] = event_setup
 
 
 def update_added_totals(datamapres):
@@ -103,267 +130,70 @@ def update_added_totals(datamapres):
             )
 
 
-def build_header_row():
-    return [
-        '<td align="center">added begin job</td>',
-        '<td align="center">added construction</td>',
-        '<td align="center">added begin run</td>',
-        '<td align="center">added begin luminosity block</td>',
-        '<td align="center">added event</td>',
-        '<td align="center">added event setup</td>',
-        '<td align="center">added total</td>',
-        '<td align="center">nAlloc begin job</td>',
-        '<td align="center">nAlloc construction</td>',
-        '<td align="center">nAlloc begin run</td>',
-        '<td align="center">nAlloc begin luminosity block</td>',
-        '<td align="center">nAlloc event</td>',
-        '<td align="center">nAlloc event setup</td>',
-        '<td align="center">nAlloc total</td>',
-        '<td align="center">nDealloc begin job</td>',
-        '<td align="center">nDealloc construction</td>',
-        '<td align="center">nDealloc begin run</td>',
-        '<td align="center">nDealloc begin luminosity block</td>',
-        '<td align="center">nDealloc event</td>',
-        '<td align="center">nDealloc event setup</td>',
-        '<td align="center">nDealloc total</td>',
-        '<td align="center">maxTemp begin job</td>',
-        '<td align="center">maxTemp construction</td>',
-        '<td align="center">maxTemp begin run</td>',
-        '<td align="center">maxTemp begin luminosity block</td>',
-        '<td align="center">maxTemp event</td>',
-        '<td align="center">maxTemp event setup</td>',
-        '<td align="center">maxTemp total</td>',
-        '<td align="center">max1Alloc begin job</td>',
-        '<td align="center">max1Alloc construction</td>',
-        '<td align="center">max1Alloc begin run</td>',
-        '<td align="center">max1Alloc begin luminosity block</td>',
-        '<td align="center">max1Alloc event</td>',
-        '<td align="center">max1Alloc event setup</td>',
-        '<td align="center">max1Alloc total</td>',
-    ]
+def merge_modules_by_key(modules, metrics):
+    merged = {}
+    for module in modules:
+        key = module_key(module)
+        if key not in merged:
+            merged[key] = {
+                "type": module.get("type"),
+                "label": module.get("label"),
+                "event setup": {"total": 0},
+            }
+        dest = merged[key]
+        record = module_record(module)
+        if record:
+            dest["event setup"].setdefault(record, {})
 
+        for metric in metrics:
+            value = module.get(metric, "N/A")
+            if is_event_setup_metric(metric):
+                metric_map = dest.get(metric)
+                if not isinstance(metric_map, dict):
+                    metric_map = {}
+                    dest[metric] = metric_map
+                rec_key = record if record else "total"
+                metric_map[rec_key] = value
 
-def build_summary_header(ibdata, prdata, results):
-    summary_header = [
-        "<html>",
-        "<head><style>",
-        "table, th, td {border: 1px solid black;}</style>",
-        "<style> th, td {padding: 15px;}</style></head>",
-        "<body><h3>ModuleAllocMonitor Resources Difference</h3><table>",
-        '</table><table><tr><td bgcolor="orange">',
-        "warn threshold %0.2f kB" % threshold,
-        '</td></tr><tr><td bgcolor="red">',
-        "error threshold %0.2f kB" % error_threshold,
-        '</td></tr><tr><td bgcolor="green">',
-        "warn threshold -%0.2f kB" % threshold,
-        '</td></tr><tr><td bgcolor="cyan">',
-        "warn threshold -%0.2f kB" % error_threshold,
-        "</td></tr>",
-        "<tr><td>metric:<BR>&lt;baseline&gt;<BR>&lt;pull request&gt;<BR>&lt;PR - baseline&gt; </td>",
-        "</tr></table>",
-        "<table>",
-        '<tr><td align="center">Type<BR>Label</td>',
-    ]
-    summary_header += build_header_row()
-    summary_header += [
-        "</tr>",
-        "<tr>",
-        "<td>%s<BR>%s</td>" % (prdata["total"]["type"], prdata["total"]["label"]),
-    ]
-    for metric in METRICS_KEYS:
-        append_triplet_cell(
-            summary_header,
-            sum_numeric_values(
-                results["total"], ["%s %s IB" % (metric, key) for key in BEGIN_JOB_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s PR" % (metric, key) for key in BEGIN_JOB_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s diff" % (metric, key) for key in BEGIN_JOB_KEYS]
-            ),
-        )
-        append_triplet_cell(
-            summary_header,
-            sum_numeric_values(
-                results["total"], ["%s %s IB" % (metric, key) for key in CONSTRUCTION_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s PR" % (metric, key) for key in CONSTRUCTION_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s diff" % (metric, key) for key in CONSTRUCTION_KEYS]
-            ),
-        )
-        append_triplet_cell(
-            summary_header,
-            sum_numeric_values(
-                results["total"], ["%s %s IB" % (metric, key) for key in BEGIN_RUN_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s PR" % (metric, key) for key in BEGIN_RUN_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s diff" % (metric, key) for key in BEGIN_RUN_KEYS]
-            ),
-        )
-        append_triplet_cell(
-            summary_header,
-            sum_numeric_values(
-                results["total"], ["%s %s IB" % (metric, key) for key in BEGIN_LUMI_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s PR" % (metric, key) for key in BEGIN_LUMI_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s diff" % (metric, key) for key in BEGIN_LUMI_KEYS]
-            ),
-        )
-        append_triplet_cell(
-            summary_header,
-            sum_numeric_values(
-                results["total"], ["%s %s IB" % (metric, key) for key in EVENT_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s PR" % (metric, key) for key in EVENT_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s diff" % (metric, key) for key in EVENT_KEYS]
-            ),
-        )
-        append_triplet_cell(
-            summary_header,
-            sum_numeric_values(
-                results["total"], ["%s %s IB" % (metric, key) for key in EVENT_SETUP_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s PR" % (metric, key) for key in EVENT_SETUP_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s diff" % (metric, key) for key in EVENT_SETUP_KEYS]
-            ),
-        )
-        append_triplet_cell(
-            summary_header,
-            sum_numeric_values(
-                results["total"], ["%s %s IB" % (metric, key) for key in TOTAL_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s PR" % (metric, key) for key in TOTAL_KEYS]
-            ),
-            sum_numeric_values(
-                results["total"], ["%s %s diff" % (metric, key) for key in TOTAL_KEYS]
-            ),
-        )
-    summary_header += [
-        "</tr></table>",
-        '<table style="width: 100%"><tr><td align="center">Module label<BR>Module type<BR>Module record</td>',
-    ]
-    summary_header += build_header_row()
-    summary_header += [
-        '<td align="center">transitions</td>',
-        "</tr>",
-    ]
-    return summary_header
-
-
-def append_module_columns_prefix(summary_lines, moduleres, prefix):
-    cell_attrs = 'align="right"'
-    if prefix == "added":
-        addedtotaldiff = numeric_value(moduleres, "added total diff", float("-inf"))
-        color = added_total_color(addedtotaldiff)
-        if color:
-            cell_attrs += " " + color
-    append_triplet_cell(
-        summary_lines,
-        sum_with_prefix_suffix(moduleres, BEGIN_JOB_KEYS, prefix=prefix, suffix="IB"),
-        sum_with_prefix_suffix(moduleres, BEGIN_JOB_KEYS, prefix=prefix, suffix="PR"),
-        sum_with_prefix_suffix(moduleres, BEGIN_JOB_KEYS, prefix=prefix, suffix="diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        sum_with_prefix_suffix(moduleres, CONSTRUCTION_KEYS, prefix=prefix, suffix="IB"),
-        sum_with_prefix_suffix(moduleres, CONSTRUCTION_KEYS, prefix=prefix, suffix="PR"),
-        sum_with_prefix_suffix(moduleres, CONSTRUCTION_KEYS, prefix=prefix, suffix="diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        sum_with_prefix_suffix(moduleres, BEGIN_RUN_KEYS, prefix=prefix, suffix="IB"),
-        sum_with_prefix_suffix(moduleres, BEGIN_RUN_KEYS, prefix=prefix, suffix="PR"),
-        sum_with_prefix_suffix(moduleres, BEGIN_RUN_KEYS, prefix=prefix, suffix="diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        sum_with_prefix_suffix(moduleres, BEGIN_LUMI_KEYS, prefix=prefix, suffix="IB"),
-        sum_with_prefix_suffix(moduleres, BEGIN_LUMI_KEYS, prefix=prefix, suffix="PR"),
-        sum_with_prefix_suffix(moduleres, BEGIN_LUMI_KEYS, prefix=prefix, suffix="diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        sum_with_prefix_suffix(moduleres, EVENT_KEYS, prefix=prefix, suffix="IB"),
-        sum_with_prefix_suffix(moduleres, EVENT_KEYS, prefix=prefix, suffix="PR"),
-        sum_with_prefix_suffix(moduleres, EVENT_KEYS, prefix=prefix, suffix="diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        sum_with_prefix_suffix(moduleres, EVENT_SETUP_KEYS, prefix=prefix, suffix="IB"),
-        sum_with_prefix_suffix(moduleres, EVENT_SETUP_KEYS, prefix=prefix, suffix="PR"),
-        sum_with_prefix_suffix(moduleres, EVENT_SETUP_KEYS, prefix=prefix, suffix="diff"),
-    )
-    append_triplet_cell(
-        summary_lines,
-        sum_with_prefix_suffix(moduleres, TOTAL_KEYS, prefix=prefix, suffix="IB"),
-        sum_with_prefix_suffix(moduleres, TOTAL_KEYS, prefix=prefix, suffix="PR"),
-        sum_with_prefix_suffix(moduleres, TOTAL_KEYS, prefix=prefix, suffix="diff"),
-        attrs=cell_attrs,
-    )
-
-
-def append_module_rows(summary_lines, moduleib, modulepr, moduleres):
-    summary_lines += [
-        "<tr>",
-        '<td align="center">%s<BR>%s<BR> %s</td>'
-        % (moduleres.get("label", ""), moduleres.get("type", ""), moduleres.get("record", "")),
-    ]
-    for metric in METRICS_KEYS:
-        append_module_columns_prefix(summary_lines, moduleres, metric)
-    transitions_ib = numeric_value(moduleib, "transitions")
-    transitions_pr = numeric_value(modulepr, "transitions")
-    transitions_diff = transitions_diff_value(transitions_ib, transitions_pr)
-    append_triplet_cell(summary_lines, transitions_ib, transitions_pr, transitions_diff)
-    summary_lines += ["</tr>"]
-
-
-def append_sorted_module_rows(summary_lines, datamapib, datamappr, datamapres):
-    for item in sorted(
-        datamapres.items(),
-        key=lambda x: numeric_value(x[1], "added total diff", float("-inf")),
-        reverse=True,
-    ):
-        key = module_key(item[1])
-        if not is_valid_module_key(key):
-            continue
-        moduleib = datamapib.get(key, {})
-        modulepr = datamappr.get(key, {})
-        moduleres = datamapres.get(key, {})
-        append_module_rows(summary_lines, moduleib, modulepr, moduleres)
-
-
-def build_summary_lines(ibdata, prdata, results, datamapib, datamappr, datamapres):
-    summary_lines = build_summary_header(ibdata, prdata, results)
-    update_added_totals(datamapres)
-    append_sorted_module_rows(summary_lines, datamapib, datamappr, datamapres)
-    summary_lines += ["</body></html>"]
-    return summary_lines
+                if record and isinstance(value, (int, float)):
+                    dest["event setup"][record][metric] = value
+            elif isinstance(value, (int, float)):
+                dest[metric] = dest.get(metric, 0) + value
+            elif metric not in dest:
+                dest[metric] = value
+    return merged
 
 
 def diff_from(metrics, data, dest, res):
+    def diff_dictionary_values(ib_values, pr_values):
+        records = sorted(set(ib_values.keys()) | set(pr_values.keys()))
+        diff_values = {}
+        for record in records:
+            ib_value = ib_values.get(record, "N/A")
+            pr_value = pr_values.get(record, "N/A")
+            if isinstance(ib_value, (int, float)) and isinstance(pr_value, (int, float)):
+                diff_values[record] = pr_value - ib_value
+            elif isinstance(pr_value, (int, float)):
+                diff_values[record] = pr_value
+            elif isinstance(ib_value, (int, float)):
+                diff_values[record] = -ib_value
+            else:
+                diff_values[record] = "N/A"
+        return diff_values
+
     for metric in metrics:
         ibkey = "%s IB" % metric
-        res[ibkey] = data.get(metric, "N/A")
+        ibvalue = data.get(metric, "N/A")
+        res[ibkey] = ibvalue
         prkey = "%s PR" % metric
-        res[prkey] = dest.get(metric, "N/A")
-        if res[ibkey] == "N/A" or res[prkey] == "N/A":
+        prvalue = dest.get(metric, "N/A")
+        res[prkey] = prvalue
+
+        if isinstance(ibvalue, dict) or isinstance(prvalue, dict):
+            ibdict = ibvalue if isinstance(ibvalue, dict) else {}
+            prdict = prvalue if isinstance(prvalue, dict) else {}
+            res[metric + " diff"] = diff_dictionary_values(ibdict, prdict)
+        elif res[ibkey] == "N/A" or res[prkey] == "N/A":
             if res[prkey] != "N/A":
                 res[metric + " diff"] = res[prkey] - 0
             elif res[ibkey] != "N/A":
@@ -389,7 +219,7 @@ for resource in ibdata["resources"]:
         for key in resource:
             metrics.append(key)
 
-datamapib = {module_key(module): module for module in ibdata["modules"]}
+datamapib = merge_modules_by_key(ibdata["modules"], metrics)
 
 datacumulsib = {}
 for module in ibdata["modules"]:
@@ -411,7 +241,7 @@ if ibdata["resources"] != prdata["resources"]:
     print("Error: input files describe different metrics")
     sys.exit(1)
 
-datamappr = {module_key(module): module for module in prdata["modules"]}
+datamappr = merge_modules_by_key(prdata["modules"], metrics)
 
 
 if ibdata["total"]["label"] != prdata["total"]["label"]:
@@ -448,26 +278,24 @@ for key in sorted(keys):
     if key in datamapib and key not in datamappr:
         result["type"] = datamapib.get(key).get("type")
         result["label"] = datamapib.get(key).get("label")
-        result["record"] = datamapib.get(key).get("record")
         diff_from(metrics, datamapib.get(key, {}), {}, result)
     elif key in datamappr and key not in datamapib:
         result["type"] = datamappr.get(key).get("type")
         result["label"] = datamappr.get(key).get("label")
-        result["record"] = datamappr.get(key).get("record")
         diff_from(metrics, {}, datamappr.get(key, {}), result)
     else:
         result["type"] = datamappr.get(key).get("type")
         result["label"] = datamappr.get(key).get("label")
-        result["record"] = datamappr.get(key).get("record")
         diff_from(metrics, datamapib.get(key, {}), datamappr.get(key, {}), result)
+    ensure_event_setup_total(result)
     results["modules"].append(result)
 
 datamapres = {}
 for module in results["modules"]:
     datamapres[module_key(module)] = module
 
+update_added_totals(datamapres)
 
-summaryLines = build_summary_lines(ibdata, prdata, results, datamapib, datamappr, datamapres)
 dumpfile = (
     os.path.dirname(os.path.realpath(sys.argv[2]))
     + "/diff-"
@@ -482,6 +310,13 @@ summaryFile = (
     + os.path.basename(os.path.realpath(sys.argv[2]))
     + ".html"
 )
-with open(summaryFile, "w") as g:
-    for summaryLine in summaryLines:
-        print(summaryLine, file=g)
+
+templateFile = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "module_alloc_monitor_viewer.html"
+)
+summaryHtml = build_viewer_html(
+    template_path=templateFile, embedded_data=results, source_label="embedded diff data"
+)
+
+with open(summaryFile, "w", encoding="utf-8") as g:
+    g.write(summaryHtml)
